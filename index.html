@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ClanertAir – Air Quality Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Chart.js for graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-page: #f4f5fb;
+      --bg-sidebar: #ffffff;   /* white sidebar */
+      --bg-card: #ffffff;      /* white cards */
+      --accent-green: #16a34a; /* green */
+      --accent-blue: #1d4ed8;  /* deep blue */
+      --text-main: #111827;    /* almost black */
+      --text-muted: #6b7280;   /* grey */
+      --border-light: #e5e7eb;
+      --border-dark: #1f2937;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg-page);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .layout {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* Sidebar (white) */
+
+    .sidebar {
+      width: 260px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-light);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      color: var(--text-main);
+    }
+
+    .logo-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-block img {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      object-fit: contain;
+      background: #ffffff;
+      padding: 4px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .logo-text-main {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--text-main);
+    }
+
+    .logo-text-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .sidebar-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .pill-online {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(22,163,74,0.15);
+      color: var(--accent-green);
+      font-size: 0.75rem;
+      border: 1px solid rgba(22,163,74,0.3);
+      margin-bottom: 4px;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #16a34a;
+    }
+
+    .sidebar-note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .control-group {
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+      color: var(--text-main);
+    }
+
+    .control-group label {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    select, button {
+      border-radius: 10px;
+      border: 1px solid var(--border-light);
+      padding: 6px 11px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    select {
+      background: #ffffff;
+      color: var(--text-main);
+    }
+
+    button {
+      background: var(--accent-blue);
+      color: #ffffff;
+      margin-top: 4px;
+      border-color: var(--accent-blue);
+    }
+
+    button:hover {
+      background: #1e40af;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+      font-size: 0.8rem;
+      color: var(--text-main);
+    }
+
+    .toggle-row input {
+      accent-color: var(--accent-green);
+    }
+
+    .small-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .sidebar-status {
+      margin-top: auto;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-light);
+      padding-top: 8px;
+    }
+
+    .status-text {
+      margin-top: 4px;
+    }
+    .status-text.ok {
+      color: var(--accent-green);
+    }
+    .status-text.error {
+      color: #dc2626;
+    }
+
+    /* Main content */
+
+    .main {
+      flex: 1;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--bg-page);
+    }
+
+    .main-header {
+      margin-bottom: 6px;
+    }
+
+    .main-title {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: 0.03em;
+      color: var(--text-main);
+    }
+
+    .main-subtitle {
+      margin: 2px 0 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-light);
+      box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+    }
+
+    .card-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .card-main {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .card-value {
+      font-size: 1.55rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .card-unit {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .card-note {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .aq-pill {
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      display: inline-block;
+      margin-top: 6px;
+    }
+
+    .aq-good {
+      background: rgba(22,163,74,0.12);
+      color: #166534;
+      border: 1px solid rgba(22,163,74,0.5);
+    }
+
+    .aq-moderate {
+      background: rgba(234,179,8,0.12);
+      color: #854d0e;
+      border: 1px solid rgba(234,179,8,0.5);
+    }
+
+    .aq-unhealthy {
+      background: rgba(249,115,22,0.12);
+      color: #9a3412;
+      border: 1px solid rgba(249,115,22,0.6);
+    }
+
+    .aq-veryunhealthy {
+      background: rgba(239,68,68,0.1);
+      color: #7f1d1d;
+      border: 1px solid rgba(239,68,68,0.6);
+    }
+
+    .aq-hazardous {
+      background: rgba(88,28,135,0.12);
+      color: #4a044e;
+      border: 1px solid rgba(126,34,206,0.7);
+    }
+
+    .chart-card {
+      margin-top: 10px;
+      min-height: 260px;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+
+    .chart-title {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .chart-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 190px;
+    }
+
+    .footer {
+      margin-top: auto;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: right;
+      opacity: 0.9;
+    }
+
+    /* Mobile / small screens */
+
+    @media (max-width: 800px) {
+      .layout {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+      }
+      .main {
+        padding: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+      .main-title {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar with logo + controls -->
+    <aside class="sidebar">
+      <div class="logo-block">
+        <img src="https://i.ibb.co/4wkhdY4n/Clanertsustain-new-logo.png" alt="Clanert logo">
+        <div>
+          <div class="logo-text-main">ClanertAir</div>
+          <div class="logo-text-sub">Local air quality view</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sidebar-section-title">Link status</div>
+        <div class="pill-online">
+          <span class="pill-dot"></span>
+          Connected to live data
+        </div>
+        <div class="sidebar-note">
+          Values indicate current air quality at your ClanertAir station.
+        </div>
+      </div>
+
+      <div>
+        <div class="sidebar-section-title">Time window</div>
+        <div class="control-group">
+          <label for="rangeSelect">Particle history range</label>
+          <select id="rangeSelect">
+            <option value="1">Last hour</option>
+            <option value="6">Last 6 hours</option>
+            <option value="24" selected>Last 24 hours</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <div class="sidebar-section-title">Display options</div>
+        <div class="control-group">
+          <div class="toggle-row">
+            <input type="checkbox" id="autoRefresh" checked>
+            <span>Auto-refresh every 60 seconds</span>
+          </div>
+          <div class="toggle-row">
+            <input type="checkbox" id="showPm10" checked>
+            <span>Show coarse particles (PM10)</span>
+          </div>
+          <div class="small-text">
+            Use “Refresh now” any time you want to update the view immediately.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button id="refreshBtn">Refresh now</button>
+      </div>
+
+      <div class="sidebar-status">
+        <div id="timestampText">Last update: --</div>
+        <div id="statusText" class="status-text">Waiting for first data…</div>
+      </div>
+    </aside>
+
+    <!-- Main dashboard -->
+    <main class="main">
+      <div class="main-header">
+        <h1 class="main-title">Air quality overview</h1>
+        <p class="main-subtitle">
+          A quick view of fine and coarse particles, temperature and humidity around your ClanertAir station.
+        </p>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-label">Overall air quality</div>
+          <div class="card-main">
+            <div class="card-value" id="aqStatus">--</div>
+          </div>
+          <div class="card-note" id="aqMessage">
+            Waiting for recent measurements...
+          </div>
+          <div id="aqCategoryPill"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Fine particles</div>
+          <div class="card-main">
+            <div class="card-value" id="pm25">--</div>
+            <div class="card-unit">µg/m³ PM2.5</div>
+          </div>
+          <div class="card-note">
+            Particles smaller than 2.5 µm that reach deep into the lungs.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Coarse particles</div>
+          <div class="card-main">
+            <div class="card-value" id="pm10">--</div>
+            <div class="card-unit">µg/m³ PM10</div>
+          </div>
+          <div class="card-note">
+            Larger dust and particles, often higher near roads and construction.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Thermal comfort</div>
+          <div class="card-main">
+            <div class="card-value" id="temp">--</div>
+            <div class="card-unit">°C</div>
+          </div>
+          <div class="card-note">
+            Relative humidity: <span id="hum">--</span> %. Warm, humid air can make pollution feel heavier.
+          </div>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Hourly particle trends</div>
+            <div class="chart-subtitle" id="chartSubtitle">
+              Loading historical data...
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="pmChart"></canvas>
+        </div>
+      </div>
+
+      <div class="footer">
+        Air quality categories are estimated from PM2.5 (µg/m³). This view is informational and not a medical device.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Your data endpoint URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwD21CyF2Gli6Y6hDPUyds2fzAw7mrJ0NSDrqeiG7yItbZcYL-cbKsLcbHOU7db32wN/exec";
+
+    const pm25El = document.getElementById("pm25");
+    const pm10El = document.getElementById("pm10");
+    const tempEl = document.getElementById("temp");
+    const humEl  = document.getElementById("hum");
+    const aqStatusEl = document.getElementById("aqStatus");
+    const aqMessageEl = document.getElementById("aqMessage");
+    const aqCategoryPillEl = document.getElementById("aqCategoryPill");
+    const timestampTextEl = document.getElementById("timestampText");
+    const statusTextEl = document.getElementById("statusText");
+    const chartSubtitleEl = document.getElementById("chartSubtitle");
+
+    const rangeSelect = document.getElementById("rangeSelect");
+    const autoRefreshEl = document.getElementById("autoRefresh");
+    const showPm10El = document.getElementById("showPm10");
+    const refreshBtn = document.getElementById("refreshBtn");
+
+    let pmChart = null;
+    let autoRefreshTimer = null;
+
+    // Air quality category from PM2.5
+    function classifyAirQuality(pm25) {
+      if (pm25 == null || isNaN(pm25)) {
+        return {
+          label: "Unknown",
+          message: "No recent particulate data is available yet.",
+          className: "aq-pill"
+        };
+      }
+
+      if (pm25 <= 12) {
+        return {
+          label: "Good",
+          message: "Air quality is clean. Outdoor activities are safe for everyone.",
+          className: "aq-pill aq-good"
+        };
+      } else if (pm25 <= 35.4) {
+        return {
+          label: "Moderate",
+          message: "Air quality is generally acceptable. Sensitive people should watch for symptoms.",
+          className: "aq-pill aq-moderate"
+        };
+      } else if (pm25 <= 55.4) {
+        return {
+          label: "Unhealthy for sensitive groups",
+          message: "Children, older adults and people with lung or heart conditions should limit outdoor exertion.",
+          className: "aq-pill aq-unhealthy"
+        };
+      } else if (pm25 <= 150.4) {
+        return {
+          label: "Unhealthy",
+          message: "Everyone may feel effects. Reduce time with intense outdoor activity.",
+          className: "aq-pill aq-veryunhealthy"
+        };
+      } else if (pm25 <= 250.4) {
+        return {
+          label: "Very unhealthy",
+          message: "Health warnings. Try to stay indoors with cleaner air if possible.",
+          className: "aq-pill aq-veryunhealthy"
+        };
+      } else {
+        return {
+          label: "Hazardous",
+          message: "Serious health effects likely. Follow local health advice and avoid outdoor air.",
+          className: "aq-pill aq-hazardous"
+        };
+      }
+    }
+
+    async function fetchLatest() {
+      const url = SCRIPT_URL + "?mode=latest";
+      const res = await fetch(url);
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error("Server did not return JSON: " + text);
+      }
+      if (data.error === "no_data") {
+        throw new Error("No data available yet.");
+      }
+      return data;
+    }
+
+    async function fetchHistory(hours) {
+      const url = SCRIPT_URL + "?mode=history&hours=" + encodeURIComponent(hours);
+      const res = await fetch(url);
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error("History endpoint did not return JSON: " + text);
+      }
+      return data;
+    }
+
+    function formatTimestampFull(ts) {
+      if (!ts) return "--";
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return String(ts);
+      return d.toLocaleString();
+    }
+
+    function formatTimestampShort(ts) {
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return "";
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function updateCards(latest) {
+      const pm25 = parseFloat(latest.pm25);
+      const pm10 = parseFloat(latest.pm10);
+      const temp = parseFloat(latest.temperature);
+      const hum  = parseFloat(latest.humidity);
+
+      pm25El.textContent = isNaN(pm25) ? "--" : pm25.toFixed(1);
+      pm10El.textContent = isNaN(pm10) ? "--" : pm10.toFixed(1);
+      tempEl.textContent = isNaN(temp) ? "--" : temp.toFixed(1);
+      humEl.textContent  = isNaN(hum)  ? "--" : hum.toFixed(0);
+
+      const aqInfo = classifyAirQuality(pm25);
+      aqStatusEl.textContent = aqInfo.label;
+      aqMessageEl.textContent = aqInfo.message;
+      aqCategoryPillEl.innerHTML = `<span class="${aqInfo.className}">${aqInfo.label}</span>`;
+
+      timestampTextEl.textContent = "Last update: " + formatTimestampFull(latest.timestamp);
+    }
+
+    function updateChart(history) {
+      let points = history.points || [];
+      const hours = history.hours;
+
+      points = points.filter(p => {
+        const ts = new Date(p.timestamp);
+        const pm25 = parseFloat(p.pm25);
+        const pm10 = parseFloat(p.pm10);
+        return !isNaN(ts.getTime()) && (!isNaN(pm25) || !isNaN(pm10));
+      });
+
+      points.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+      if (!points.length) {
+        chartSubtitleEl.textContent = "No historical data in the selected window.";
+      } else {
+        chartSubtitleEl.textContent = `Showing last ${hours} hour(s): ${points.length} measurements.`;
+      }
+
+      const labels = points.map(p => formatTimestampShort(p.timestamp));
+      const pm25Data = points.map(p => {
+        const v = parseFloat(p.pm25);
+        return isNaN(v) ? null : v;
+      });
+      const pm10Data = points.map(p => {
+        const v = parseFloat(p.pm10);
+        return isNaN(v) ? null : v;
+      });
+
+      const showPm10 = showPm10El.checked;
+      const ctx = document.getElementById("pmChart").getContext("2d");
+
+      if (pmChart) {
+        pmChart.destroy();
+      }
+
+      pmChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "PM2.5 (µg/m³)",
+              data: pm25Data,
+              borderWidth: 2,
+              tension: 0.2,
+              pointRadius: 0,
+              borderColor: "#16a34a",
+              backgroundColor: "rgba(22,163,74,0.12)"
+            },
+            {
+              label: "PM10 (µg/m³)",
+              data: pm10Data,
+              borderWidth: 1.5,
+              tension: 0.2,
+              pointRadius: 0,
+              borderColor: "#1d4ed8",
+              backgroundColor: "rgba(37,99,235,0.08)",
+              borderDash: [4, 3],
+              hidden: !showPm10
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: "index",
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: "#111827",
+                font: { size: 10 }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+                  const idx = items[0].dataIndex;
+                  const p = points[idx];
+                  return p ? formatTimestampFull(p.timestamp) : "";
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                color: "#6b7280",
+                maxTicksLimit: 8
+              },
+              grid: {
+                color: "#e5e7eb"
+              }
+            },
+            y: {
+              ticks: {
+                color: "#6b7280"
+              },
+              grid: {
+                color: "#e5e7eb"
+              },
+              suggestedMin: 0,
+              suggestedMax: 150
+            }
+          }
+        }
+      });
+    }
+
+    async function refreshAll() {
+      const hours = parseInt(rangeSelect.value, 10) || 1;
+      statusTextEl.textContent = "Updating...";
+      statusTextEl.className = "status-text";
+
+      try {
+        const [latest, history] = await Promise.all([
+          fetchLatest(),
+          fetchHistory(hours)
+        ]);
+
+        updateCards(latest);
+        updateChart(history);
+
+        statusTextEl.textContent = "Last refresh successful.";
+        statusTextEl.className = "status-text ok";
+      } catch (err) {
+        console.error(err);
+        statusTextEl.textContent = "Error: " + err.message;
+        statusTextEl.className = "status-text error";
+      }
+    }
+
+    function setupAutoRefresh() {
+      if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+      }
+      if (autoRefreshEl.checked) {
+        autoRefreshTimer = setInterval(() => {
+          refreshAll();
+        }, 60000);
+      }
+    }
+
+    refreshBtn.addEventListener("click", () => {
+      refreshAll();
+    });
+
+    rangeSelect.addEventListener("change", () => {
+      refreshAll();
+    });
+
+    autoRefreshEl.addEventListener("change", () => {
+      setupAutoRefresh();
+    });
+
+    showPm10El.addEventListener("change", () => {
+      if (pmChart) {
+        const ds = pmChart.data.datasets[1];
+        ds.hidden = !showPm10El.checked;
+        pmChart.update();
+      }
+    });
+
+    // Initial load
+    refreshAll();
+    setupAutoRefresh();
+  </script>
+</body>
+</html>
