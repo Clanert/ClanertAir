@@ -2,23 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ClanertAir – Air Quality Dashboard</title>
+  <title>ClanertAir – Air Quality Map Platform</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Chart.js for graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- Leaflet for map -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
   <style>
     :root {
       --bg-page: #f4f5fb;
-      --bg-sidebar: #ffffff;   /* white sidebar */
-      --bg-card: #ffffff;      /* white cards */
+      --bg-panel: #ffffff;
+      --bg-card: #ffffff;
       --accent-green: #16a34a; /* green */
       --accent-blue: #1d4ed8;  /* deep blue */
+      --accent-amber: #f59e0b; /* warm for temp */
       --text-main: #111827;    /* almost black */
       --text-muted: #6b7280;   /* grey */
       --border-light: #e5e7eb;
-      --border-dark: #1f2937;
     }
 
     * {
@@ -27,209 +40,267 @@
 
     body {
       margin: 0;
-      background: var(--bg-page);
-      color: var(--text-main);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      min-height: 100vh;
-      display: flex;
-    }
-
-    .layout {
-      display: flex;
-      width: 100%;
-      min-height: 100vh;
-    }
-
-    /* Sidebar (white) */
-
-    .sidebar {
-      width: 260px;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border-light);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
       color: var(--text-main);
+      background: var(--bg-page);
+      overflow: hidden;
     }
 
-    .logo-block {
+    /* Map takes full screen, panel overlays on the right */
+    #map {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    /* Top navigation bar */
+
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      padding: 6px 10px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.96);
+      box-shadow: 0 4px 12px rgba(15,23,42,0.14);
+      backdrop-filter: blur(8px);
+      z-index: 30;
     }
 
-    .logo-block img {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      object-fit: contain;
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--border-light);
+      padding: 3px;
       background: #ffffff;
-      padding: 4px;
-      border: 1px solid #e5e7eb;
+      object-fit: contain;
     }
 
-    .logo-text-main {
+    .nav-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-title {
+      font-size: 0.95rem;
       font-weight: 600;
+    }
+
+    .nav-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .nav-toggle {
+      border-radius: 999px;
+      border: 1px solid var(--border-light);
+      background: #f9fafb;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
       font-size: 1.1rem;
       color: var(--text-main);
     }
 
-    .logo-text-sub {
-      font-size: 0.8rem;
-      color: var(--text-muted);
+    .nav-toggle:hover {
+      background: #e5e7eb;
     }
 
-    .sidebar-section-title {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
+    /* Side panel */
 
-    .pill-online {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(22,163,74,0.15);
-      color: var(--accent-green);
-      font-size: 0.75rem;
-      border: 1px solid rgba(22,163,74,0.3);
-      margin-bottom: 4px;
-    }
-
-    .pill-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #16a34a;
-    }
-
-    .sidebar-note {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-
-    .control-group {
-      margin-bottom: 10px;
-      font-size: 0.8rem;
-      color: var(--text-main);
-    }
-
-    .control-group label {
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    select, button {
-      border-radius: 10px;
-      border: 1px solid var(--border-light);
-      padding: 6px 11px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    select {
-      background: #ffffff;
-      color: var(--text-main);
-    }
-
-    button {
-      background: var(--accent-blue);
-      color: #ffffff;
-      margin-top: 4px;
-      border-color: var(--accent-blue);
-    }
-
-    button:hover {
-      background: #1e40af;
-    }
-
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
-      font-size: 0.8rem;
-      color: var(--text-main);
-    }
-
-    .toggle-row input {
-      accent-color: var(--accent-green);
-    }
-
-    .small-text {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .sidebar-status {
-      margin-top: auto;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      border-top: 1px solid var(--border-light);
-      padding-top: 8px;
-    }
-
-    .status-text {
-      margin-top: 4px;
-    }
-    .status-text.ok {
-      color: var(--accent-green);
-    }
-    .status-text.error {
-      color: #dc2626;
-    }
-
-    /* Main content */
-
-    .main {
-      flex: 1;
-      padding: 16px 18px;
+    .side-panel {
+      position: fixed;
+      top: 48px;        /* sits below nav */
+      right: 0;
+      bottom: 0;
+      width: 360px;
+      max-width: 100%;
+      background: var(--bg-panel);
+      box-shadow: -10px 0 30px rgba(15, 23, 42, 0.25);
+      border-left: 1px solid var(--border-light);
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      z-index: 20;
+      transform: translateX(0);
+      transition: transform 0.25s ease;
+    }
+
+    /* Desktop collapsed: leave 44px visible for arrow
+       Mobile collapsed: fully off-screen (see media query) */
+    .side-panel.collapsed {
+      transform: translateX(calc(100% - 44px));
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px 6px;
+      border-bottom: 1px solid var(--border-light);
+      background: rgba(255,255,255,0.98);
+      backdrop-filter: blur(6px);
+    }
+
+    .panel-header-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .panel-toggle {
+      border: 1px solid var(--border-light);
+      background: #f9fafb;
+      border-radius: 999px;
+      width: 28px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .panel-toggle:hover {
+      background: #e5e7eb;
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 10px 10px;
       background: var(--bg-page);
     }
 
-    .main-header {
-      margin-bottom: 6px;
+    .panel-section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin: 6px 0 4px;
     }
 
-    .main-title {
-      margin: 0;
-      font-size: 1.5rem;
-      letter-spacing: 0.03em;
-      color: var(--text-main);
+    .station-list-info {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
     }
 
-    .main-subtitle {
-      margin: 2px 0 0;
+    .station-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .station-item {
+      background: var(--bg-card);
+      border-radius: 10px;
+      padding: 7px 9px;
+      border: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .station-item.active {
+      border-color: var(--accent-green);
+      box-shadow: 0 4px 12px rgba(22,163,74,0.2);
+    }
+
+    .station-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .station-name {
       font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .station-area {
+      font-size: 0.75rem;
       color: var(--text-muted);
     }
 
+    .station-status-pill {
+      border-radius: 999px;
+      padding: 3px 7px;
+      font-size: 0.7rem;
+      background: #f3f4f6;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .station-status-pill.good {
+      background: rgba(22,163,74,0.12);
+      color: #166534;
+      border: 1px solid rgba(22,163,74,0.4);
+    }
+
+    .station-status-pill.moderate {
+      background: rgba(234,179,8,0.12);
+      color: #854d0e;
+      border: 1px solid rgba(234,179,8,0.4);
+    }
+
+    .station-status-pill.unhealthy {
+      background: rgba(249,115,22,0.12);
+      color: #9a3412;
+      border: 1px solid rgba(249,115,22,0.4);
+    }
+
+    .station-status-pill.veryunhealthy {
+      background: rgba(239,68,68,0.12);
+      color: #7f1d1d;
+      border: 1px solid rgba(239,68,68,0.4);
+    }
+
+    .station-status-pill.hazardous {
+      background: rgba(88,28,135,0.12);
+      color: #4a044e;
+      border: 1px solid rgba(126,34,206,0.4);
+    }
+
+    /* Cards & content */
+
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
     .card {
       background: var(--bg-card);
-      border-radius: 12px;
-      padding: 12px 14px;
+      border-radius: 10px;
+      padding: 10px 11px;
       border: 1px solid var(--border-light);
-      box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
     }
 
     .card-label {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
@@ -244,7 +315,7 @@
     }
 
     .card-value {
-      font-size: 1.55rem;
+      font-size: 1.45rem;
       font-weight: 600;
       color: var(--text-main);
     }
@@ -257,6 +328,28 @@
     .card-note {
       font-size: 0.8rem;
       color: var(--text-muted);
+    }
+
+    /* Colored overview cards */
+
+    .card-aq {
+      background: linear-gradient(135deg, #ecfdf5, #eff6ff);
+    }
+
+    .card-pm25 {
+      background: linear-gradient(135deg, #ecfdf5, #dcfce7);
+    }
+
+    .card-pm10 {
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    }
+
+    .card-thermo {
+      background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    }
+
+    .card-location {
+      background: linear-gradient(135deg, #f9fafb, #e5e7eb);
     }
 
     .aq-pill {
@@ -297,205 +390,283 @@
       border: 1px solid rgba(126,34,206,0.7);
     }
 
-    .chart-card {
-      margin-top: 10px;
-      min-height: 260px;
+    /* Trends section */
+
+    .trends-section {
+      margin-top: 4px;
     }
 
-    .chart-header {
+    .controls-row {
       display: flex;
-      justify-content: space-between;
-      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px;
       margin-bottom: 6px;
+      align-items: center;
     }
 
-    .chart-title {
-      font-size: 0.95rem;
-      font-weight: 500;
+    .select-small,
+    .btn-small {
+      border-radius: 999px;
+      border: 1px solid var(--border-light);
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      background: #ffffff;
+      color: var(--text-main);
     }
 
-    .chart-subtitle {
-      font-size: 0.78rem;
+    .btn-small {
+      background: var(--accent-blue);
+      color: #ffffff;
+      border-color: var(--accent-blue);
+    }
+
+    .btn-small:hover {
+      background: #1e40af;
+    }
+
+    .btn-map {
+      background: #10b981;
+      border-color: #059669;
+      color: #ffffff;
+      width: 100%;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    .btn-map:hover {
+      background: #059669;
+    }
+
+    .toggle-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
       color: var(--text-muted);
+    }
+
+    .toggle-inline input {
+      accent-color: var(--accent-green);
     }
 
     .chart-wrapper {
       position: relative;
-      height: 190px;
+      height: 170px;
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid var(--border-light);
+      padding: 6px;
     }
 
-    .footer {
-      margin-top: auto;
+    .chart-caption {
       font-size: 0.75rem;
       color: var(--text-muted);
-      text-align: right;
-      opacity: 0.9;
+      margin-bottom: 4px;
     }
 
-    /* Mobile / small screens */
+    /* Footer info */
 
-    @media (max-width: 800px) {
-      .layout {
-        flex-direction: column;
-      }
-      .sidebar {
+    .panel-footer {
+      padding: 6px 10px 8px;
+      border-top: 1px solid var(--border-light);
+      background: #ffffff;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .status-text.ok {
+      color: var(--accent-green);
+    }
+    .status-text.error {
+      color: #dc2626;
+    }
+
+    /* Mobile behavior */
+    @media (max-width: 640px) {
+      .side-panel {
         width: 100%;
       }
-      .main {
-        padding: 12px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .cards-grid {
-        grid-template-columns: 1fr;
-      }
-      .main-title {
-        font-size: 1.3rem;
+      /* On small screens, collapsed means hidden completely */
+      .side-panel.collapsed {
+        transform: translateX(100%);
       }
     }
   </style>
 </head>
 <body>
-  <div class="layout">
-    <!-- Sidebar with logo + controls -->
-    <aside class="sidebar">
-      <div class="logo-block">
-        <img src="https://i.ibb.co/4wkhdY4n/Clanertsustain-new-logo.png" alt="Clanert logo">
-        <div>
-          <div class="logo-text-main">ClanertAir</div>
-          <div class="logo-text-sub">Local air quality view</div>
+  <!-- Top navigation bar -->
+  <div class="top-nav">
+    <div class="nav-left">
+      <img
+        src="https://i.ibb.co/4wkhdY4n/Clanertsustain-new-logo.png"
+        alt="Clanert logo"
+        class="nav-logo"
+      >
+      <div class="nav-title-block">
+        <div class="nav-title">ClanertAir</div>
+        <div class="nav-sub" id="navSub">Platform view · 1 station</div>
+      </div>
+    </div>
+    <button id="navToggle" class="nav-toggle" aria-label="Toggle panel">
+      ☰
+    </button>
+  </div>
+
+  <!-- Fullscreen map -->
+  <div id="map"></div>
+
+  <!-- Right expandable side panel -->
+  <div class="side-panel" id="sidePanel">
+    <div class="panel-header">
+      <div class="panel-header-title">Station details</div>
+      <button class="panel-toggle" id="panelToggle" title="Collapse details">
+        ❯
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <!-- Station list -->
+      <div>
+        <div class="panel-section-title">Stations</div>
+        <div class="station-list-info" id="stationCountText">1 station available</div>
+        <div id="stationList" class="station-list"></div>
+      </div>
+
+      <!-- Selected station details -->
+      <div>
+        <div class="panel-section-title">Now at selected station</div>
+        <div class="cards-grid">
+          <div class="card card-aq">
+            <div class="card-label">Overall air quality</div>
+            <div class="card-main">
+              <div class="card-value" id="aqStatus">--</div>
+            </div>
+            <div class="card-note" id="aqMessage">
+              Waiting for recent measurements...
+            </div>
+            <div id="aqCategoryPill"></div>
+          </div>
+
+          <div class="card card-pm25">
+            <div class="card-label">Fine particles</div>
+            <div class="card-main">
+              <div class="card-value" id="pm25">--</div>
+              <div class="card-unit">µg/m³ PM2.5</div>
+            </div>
+            <div class="card-note">
+              Small particles that can reach deep into the lungs.
+            </div>
+          </div>
+
+          <div class="card card-pm10">
+            <div class="card-label">Coarse particles</div>
+            <div class="card-main">
+              <div class="card-value" id="pm10">--</div>
+              <div class="card-unit">µg/m³ PM10</div>
+            </div>
+            <div class="card-note">
+              Larger dust and particles, often higher near busy roads.
+            </div>
+          </div>
+
+          <div class="card card-thermo">
+            <div class="card-label">Thermal comfort</div>
+            <div class="card-main">
+              <div class="card-value" id="temp">--</div>
+              <div class="card-unit">°C</div>
+            </div>
+            <div class="card-note">
+              Relative humidity: <span id="hum">--</span> %.
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-location" style="margin-bottom:8px;">
+          <div class="card-label">Location & navigation</div>
+          <div class="card-note" id="stationAreaText">Area: --</div>
+          <div class="card-note">
+            Use the button below to open the station in your maps app.
+          </div>
+          <button id="openMapsBtn" class="btn-small btn-map">
+            Open in Maps
+          </button>
         </div>
       </div>
 
-      <div>
-        <div class="sidebar-section-title">Link status</div>
-        <div class="pill-online">
-          <span class="pill-dot"></span>
-          Connected to live data
-        </div>
-        <div class="sidebar-note">
-          Values indicate current air quality at your ClanertAir station.
-        </div>
-      </div>
-
-      <div>
-        <div class="sidebar-section-title">Time window</div>
-        <div class="control-group">
-          <label for="rangeSelect">Particle history range</label>
-          <select id="rangeSelect">
+      <!-- Trends -->
+      <div class="trends-section">
+        <div class="panel-section-title">Hourly particle trends</div>
+        <div class="controls-row">
+          <select id="rangeSelect" class="select-small">
             <option value="1">Last hour</option>
             <option value="6">Last 6 hours</option>
             <option value="24" selected>Last 24 hours</option>
           </select>
-        </div>
-      </div>
 
-      <div>
-        <div class="sidebar-section-title">Display options</div>
-        <div class="control-group">
-          <div class="toggle-row">
-            <input type="checkbox" id="autoRefresh" checked>
-            <span>Auto-refresh every 60 seconds</span>
-          </div>
-          <div class="toggle-row">
+          <label class="toggle-inline">
             <input type="checkbox" id="showPm10" checked>
-            <span>Show coarse particles (PM10)</span>
-          </div>
-          <div class="small-text">
-            Use “Refresh now” any time you want to update the view immediately.
-          </div>
-        </div>
-      </div>
+            PM10 line
+          </label>
 
-      <div>
-        <button id="refreshBtn">Refresh now</button>
-      </div>
+          <label class="toggle-inline">
+            <input type="checkbox" id="autoRefresh" checked>
+            Auto-refresh
+          </label>
 
-      <div class="sidebar-status">
-        <div id="timestampText">Last update: --</div>
-        <div id="statusText" class="status-text">Waiting for first data…</div>
-      </div>
-    </aside>
-
-    <!-- Main dashboard -->
-    <main class="main">
-      <div class="main-header">
-        <h1 class="main-title">Air quality overview</h1>
-        <p class="main-subtitle">
-          A quick view of fine and coarse particles, temperature and humidity around your ClanertAir station.
-        </p>
-      </div>
-
-      <div class="cards-grid">
-        <div class="card">
-          <div class="card-label">Overall air quality</div>
-          <div class="card-main">
-            <div class="card-value" id="aqStatus">--</div>
-          </div>
-          <div class="card-note" id="aqMessage">
-            Waiting for recent measurements...
-          </div>
-          <div id="aqCategoryPill"></div>
+          <button id="refreshBtn" class="btn-small">Refresh</button>
         </div>
 
-        <div class="card">
-          <div class="card-label">Fine particles</div>
-          <div class="card-main">
-            <div class="card-value" id="pm25">--</div>
-            <div class="card-unit">µg/m³ PM2.5</div>
-          </div>
-          <div class="card-note">
-            Particles smaller than 2.5 µm that reach deep into the lungs.
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-label">Coarse particles</div>
-          <div class="card-main">
-            <div class="card-value" id="pm10">--</div>
-            <div class="card-unit">µg/m³ PM10</div>
-          </div>
-          <div class="card-note">
-            Larger dust and particles, often higher near roads and construction.
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-label">Thermal comfort</div>
-          <div class="card-main">
-            <div class="card-value" id="temp">--</div>
-            <div class="card-unit">°C</div>
-          </div>
-          <div class="card-note">
-            Relative humidity: <span id="hum">--</span> %. Warm, humid air can make pollution feel heavier.
-          </div>
-        </div>
-      </div>
-
-      <div class="card chart-card">
-        <div class="chart-header">
-          <div>
-            <div class="chart-title">Hourly particle trends</div>
-            <div class="chart-subtitle" id="chartSubtitle">
-              Loading historical data...
-            </div>
-          </div>
+        <div class="chart-caption" id="chartSubtitle">
+          Loading historical data...
         </div>
         <div class="chart-wrapper">
           <canvas id="pmChart"></canvas>
         </div>
       </div>
+    </div>
 
-      <div class="footer">
-        Air quality categories are estimated from PM2.5 (µg/m³). This view is informational and not a medical device.
-      </div>
-    </main>
+    <div class="panel-footer">
+      <div id="timestampText">Last update: --</div>
+      <div id="statusText" class="status-text">Waiting for first data…</div>
+    </div>
   </div>
 
   <script>
-    // Your data endpoint URL
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwD21CyF2Gli6Y6hDPUyds2fzAw7mrJ0NSDrqeiG7yItbZcYL-cbKsLcbHOU7db32wN/exec";
+    // --- PLATFORM CONFIG -------------------------------------------------
+
+    // Your first station: Mbezi Makabe, Dar es Salaam
+    const SCRIPT_URL_CLANERT =
+      "https://script.google.com/macros/s/AKfycbwD21CyF2Gli6Y6hDPUyds2fzAw7mrJ0NSDrqeiG7yItbZcYL-cbKsLcbHOU7db32wN/exec";
+
+    // General platform array: add more stations here later
+    const stations = [
+      {
+        id: "clanert-makabe",
+        name: "ClanertAir – Mbezi Makabe",
+        area: "Mbezi Makabe, Dar es Salaam",
+        lat: -6.7432882,
+        lng: 39.1044879,
+        dataUrl: SCRIPT_URL_CLANERT,
+        aqLabel: null // filled after data fetch
+      }
+      // add more stations here in future
+    ];
+
+    // --- DOM REFERENCES --------------------------------------------------
+
+    const sidePanel = document.getElementById("sidePanel");
+    const panelToggle = document.getElementById("panelToggle");
+    const navToggle = document.getElementById("navToggle");
+    const navSubEl = document.getElementById("navSub");
+
+    const stationCountTextEl = document.getElementById("stationCountText");
+    const stationListEl = document.getElementById("stationList");
+    const stationAreaTextEl = document.getElementById("stationAreaText");
+    const openMapsBtn = document.getElementById("openMapsBtn");
 
     const pm25El = document.getElementById("pm25");
     const pm10El = document.getElementById("pm10");
@@ -504,25 +675,33 @@
     const aqStatusEl = document.getElementById("aqStatus");
     const aqMessageEl = document.getElementById("aqMessage");
     const aqCategoryPillEl = document.getElementById("aqCategoryPill");
-    const timestampTextEl = document.getElementById("timestampText");
-    const statusTextEl = document.getElementById("statusText");
-    const chartSubtitleEl = document.getElementById("chartSubtitle");
 
     const rangeSelect = document.getElementById("rangeSelect");
     const autoRefreshEl = document.getElementById("autoRefresh");
     const showPm10El = document.getElementById("showPm10");
     const refreshBtn = document.getElementById("refreshBtn");
 
+    const chartSubtitleEl = document.getElementById("chartSubtitle");
+    const timestampTextEl = document.getElementById("timestampText");
+    const statusTextEl = document.getElementById("statusText");
+
+    // --- MAP & STATE -----------------------------------------------------
+
+    let map = null;
+    let markers = {}; // stationId -> circleMarker
     let pmChart = null;
     let autoRefreshTimer = null;
+    let currentStation = stations[0];
 
-    // Air quality category from PM2.5
+    // --- AQ CATEGORY LOGIC ----------------------------------------------
+
     function classifyAirQuality(pm25) {
       if (pm25 == null || isNaN(pm25)) {
         return {
           label: "Unknown",
           message: "No recent particulate data is available yet.",
-          className: "aq-pill"
+          className: "aq-pill",
+          stationStatusClass: ""
         };
       }
 
@@ -530,43 +709,70 @@
         return {
           label: "Good",
           message: "Air quality is clean. Outdoor activities are safe for everyone.",
-          className: "aq-pill aq-good"
+          className: "aq-pill aq-good",
+          stationStatusClass: "good"
         };
       } else if (pm25 <= 35.4) {
         return {
           label: "Moderate",
           message: "Air quality is generally acceptable. Sensitive people should watch for symptoms.",
-          className: "aq-pill aq-moderate"
+          className: "aq-pill aq-moderate",
+          stationStatusClass: "moderate"
         };
       } else if (pm25 <= 55.4) {
         return {
           label: "Unhealthy for sensitive groups",
           message: "Children, older adults and people with lung or heart conditions should limit outdoor exertion.",
-          className: "aq-pill aq-unhealthy"
+          className: "aq-pill aq-unhealthy",
+          stationStatusClass: "unhealthy"
         };
       } else if (pm25 <= 150.4) {
         return {
           label: "Unhealthy",
           message: "Everyone may feel effects. Reduce time with intense outdoor activity.",
-          className: "aq-pill aq-veryunhealthy"
+          className: "aq-pill aq-veryunhealthy",
+          stationStatusClass: "veryunhealthy"
         };
       } else if (pm25 <= 250.4) {
         return {
           label: "Very unhealthy",
           message: "Health warnings. Try to stay indoors with cleaner air if possible.",
-          className: "aq-pill aq-veryunhealthy"
+          className: "aq-pill aq-veryunhealthy",
+          stationStatusClass: "veryunhealthy"
         };
       } else {
         return {
           label: "Hazardous",
-          message: "Serious health effects likely. Follow local health advice and avoid outdoor air.",
-          className: "aq-pill aq-hazardous"
+          message: "Serious health effects likely. Avoid outdoor air as much as possible.",
+          className: "aq-pill aq-hazardous",
+          stationStatusClass: "hazardous"
         };
       }
     }
 
-    async function fetchLatest() {
-      const url = SCRIPT_URL + "?mode=latest";
+    function getMarkerColors(label) {
+      switch (label) {
+        case "Good":
+          return { color: "#16a34a", fillColor: "#22c55e" };
+        case "Moderate":
+          return { color: "#eab308", fillColor: "#facc15" };
+        case "Unhealthy for sensitive groups":
+          return { color: "#f97316", fillColor: "#fb923c" };
+        case "Unhealthy":
+          return { color: "#ef4444", fillColor: "#f87171" };
+        case "Very unhealthy":
+          return { color: "#b91c1c", fillColor: "#f97373" };
+        case "Hazardous":
+          return { color: "#6b21a8", fillColor: "#a855f7" };
+        default:
+          return { color: "#6b7280", fillColor: "#9ca3af" };
+      }
+    }
+
+    // --- API CALLS -------------------------------------------------------
+
+    async function fetchLatest(station) {
+      const url = station.dataUrl + "?mode=latest";
       const res = await fetch(url);
       const text = await res.text();
       let data;
@@ -581,8 +787,8 @@
       return data;
     }
 
-    async function fetchHistory(hours) {
-      const url = SCRIPT_URL + "?mode=history&hours=" + encodeURIComponent(hours);
+    async function fetchHistory(station, hours) {
+      const url = station.dataUrl + "?mode=history&hours=" + encodeURIComponent(hours);
       const res = await fetch(url);
       const text = await res.text();
       let data;
@@ -594,20 +800,9 @@
       return data;
     }
 
-    function formatTimestampFull(ts) {
-      if (!ts) return "--";
-      const d = new Date(ts);
-      if (isNaN(d.getTime())) return String(ts);
-      return d.toLocaleString();
-    }
+    // --- UI UPDATE FUNCTIONS --------------------------------------------
 
-    function formatTimestampShort(ts) {
-      const d = new Date(ts);
-      if (isNaN(d.getTime())) return "";
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    }
-
-    function updateCards(latest) {
+    function updateCardsFromLatest(station, latest) {
       const pm25 = parseFloat(latest.pm25);
       const pm10 = parseFloat(latest.pm10);
       const temp = parseFloat(latest.temperature);
@@ -619,17 +814,53 @@
       humEl.textContent  = isNaN(hum)  ? "--" : hum.toFixed(0);
 
       const aqInfo = classifyAirQuality(pm25);
+      station.aqLabel = aqInfo.label; // store on station
+
       aqStatusEl.textContent = aqInfo.label;
       aqMessageEl.textContent = aqInfo.message;
       aqCategoryPillEl.innerHTML = `<span class="${aqInfo.className}">${aqInfo.label}</span>`;
 
-      timestampTextEl.textContent = "Last update: " + formatTimestampFull(latest.timestamp);
+      timestampTextEl.textContent =
+        "Last update: " + formatTimestampFull(latest.timestamp);
+
+      // Update station area text
+      stationAreaTextEl.textContent = "Area: " + station.area;
+
+      // Update marker style & popup
+      updateMarkerForStation(station, pm25, pm10, temp, hum, aqInfo);
+      // Re-render station list to reflect new AQ label
+      renderStationList();
     }
 
-    function updateChart(history) {
+    function updateMarkerForStation(station, pm25, pm10, temp, hum, aqInfo) {
+      const marker = markers[station.id];
+      if (!marker) return;
+      const colors = getMarkerColors(aqInfo.label);
+
+      marker.setStyle({
+        color: colors.color,
+        fillColor: colors.fillColor
+      });
+
+      const pieces = [];
+      if (!isNaN(pm25)) pieces.push(`PM2.5: ${pm25.toFixed(1)} µg/m³`);
+      if (!isNaN(pm10)) pieces.push(`PM10: ${pm10.toFixed(1)} µg/m³`);
+      if (!isNaN(temp)) pieces.push(`Temp: ${temp.toFixed(1)} °C`);
+      if (!isNaN(hum)) pieces.push(`Humidity: ${hum.toFixed(0)} %`);
+
+      const popupHtml = `
+        <strong>${station.name}</strong><br>
+        Status: ${aqInfo.label}<br>
+        ${pieces.join(" · ")}
+      `;
+      marker.bindPopup(popupHtml);
+    }
+
+    function updateChartFromHistory(history) {
       let points = history.points || [];
       const hours = history.hours;
 
+      // Filter invalid data
       points = points.filter(p => {
         const ts = new Date(p.timestamp);
         const pm25 = parseFloat(p.pm25);
@@ -640,9 +871,11 @@
       points.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
       if (!points.length) {
-        chartSubtitleEl.textContent = "No historical data in the selected window.";
+        chartSubtitleEl.textContent =
+          "No historical data in the selected window.";
       } else {
-        chartSubtitleEl.textContent = `Showing last ${hours} hour(s): ${points.length} measurements.`;
+        chartSubtitleEl.textContent =
+          `Showing last ${hours} hour(s): ${points.length} measurements.`;
       }
 
       const labels = points.map(p => formatTimestampShort(p.timestamp));
@@ -738,19 +971,148 @@
       });
     }
 
-    async function refreshAll() {
+    function formatTimestampFull(ts) {
+      if (!ts) return "--";
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return String(ts);
+      return d.toLocaleString();
+    }
+
+    function formatTimestampShort(ts) {
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return "";
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    // --- STATION LIST RENDERING -----------------------------------------
+
+    function renderStationList() {
+      stationCountTextEl.textContent =
+        stations.length === 1
+          ? "1 station available"
+          : stations.length + " stations available";
+
+      navSubEl.textContent =
+        "Platform view · " +
+        (stations.length === 1 ? "1 station" : stations.length + " stations");
+
+      stationListEl.innerHTML = "";
+      stations.forEach(st => {
+        const div = document.createElement("div");
+        div.className =
+          "station-item" + (st.id === currentStation.id ? " active" : "");
+        div.dataset.stationId = st.id;
+
+        const main = document.createElement("div");
+        main.className = "station-main";
+
+        const name = document.createElement("div");
+        name.className = "station-name";
+        name.textContent = st.name;
+
+        const area = document.createElement("div");
+        area.className = "station-area";
+        area.textContent = st.area;
+
+        main.appendChild(name);
+        main.appendChild(area);
+
+        const status = document.createElement("div");
+        status.className = "station-status-pill";
+        if (st.aqLabel) {
+          const labelLower = st.aqLabel.toLowerCase();
+          if (labelLower.includes("good")) {
+            status.classList.add("good");
+          } else if (labelLower.includes("moderate")) {
+            status.classList.add("moderate");
+          } else if (labelLower.includes("sensitive")) {
+            status.classList.add("unhealthy");
+          } else if (labelLower.includes("very")) {
+            status.classList.add("veryunhealthy");
+          } else if (labelLower.includes("hazardous")) {
+            status.classList.add("hazardous");
+          } else if (labelLower.includes("unhealthy")) {
+            status.classList.add("unhealthy");
+          }
+          status.textContent = st.aqLabel;
+        } else {
+          status.textContent = "Awaiting data";
+        }
+
+        div.appendChild(main);
+        div.appendChild(status);
+
+        div.addEventListener("click", () => {
+          selectStationById(st.id);
+        });
+
+        stationListEl.appendChild(div);
+      });
+    }
+
+    function selectStationById(stationId) {
+      const station = stations.find(s => s.id === stationId);
+      if (!station) return;
+      currentStation = station;
+
+      renderStationList();
+      centerMapOnStation(station);
+      refreshAllForCurrentStation();
+    }
+
+    // --- MAP INITIALIZATION ---------------------------------------------
+
+    function initMap() {
+      const first = stations[0];
+      map = L.map("map").setView([first.lat, first.lng], 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+      }).addTo(map);
+
+      stations.forEach(st => {
+        const circle = L.circleMarker([st.lat, st.lng], {
+          radius: 10,
+          color: "#6b7280",
+          weight: 2,
+          fillColor: "#9ca3af",
+          fillOpacity: 0.9
+        }).addTo(map);
+
+        circle.bindPopup(st.name);
+        circle.on("click", () => {
+          selectStationById(st.id);
+        });
+
+        markers[st.id] = circle;
+      });
+
+      stationAreaTextEl.textContent = "Area: " + first.area;
+    }
+
+    function centerMapOnStation(station) {
+      if (!map) return;
+      map.setView([station.lat, station.lng], 13);
+    }
+
+    // --- REFRESH LOGIC ---------------------------------------------------
+
+    async function refreshAllForCurrentStation() {
+      const station = currentStation;
       const hours = parseInt(rangeSelect.value, 10) || 1;
+
       statusTextEl.textContent = "Updating...";
       statusTextEl.className = "status-text";
 
       try {
         const [latest, history] = await Promise.all([
-          fetchLatest(),
-          fetchHistory(hours)
+          fetchLatest(station),
+          fetchHistory(station, hours)
         ]);
 
-        updateCards(latest);
-        updateChart(history);
+        updateCardsFromLatest(station, latest);
+        updateChartFromHistory(history);
 
         statusTextEl.textContent = "Last refresh successful.";
         statusTextEl.className = "status-text ok";
@@ -768,17 +1130,34 @@
       }
       if (autoRefreshEl.checked) {
         autoRefreshTimer = setInterval(() => {
-          refreshAll();
+          refreshAllForCurrentStation();
         }, 60000);
       }
     }
 
+    // --- PANEL TOGGLING --------------------------------------------------
+
+    function togglePanel() {
+      const collapsed = sidePanel.classList.toggle("collapsed");
+      panelToggle.textContent = collapsed ? "❮" : "❯";
+      if (map) {
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 250);
+      }
+    }
+
+    panelToggle.addEventListener("click", togglePanel);
+    navToggle.addEventListener("click", togglePanel);
+
+    // --- OTHER EVENTS ----------------------------------------------------
+
     refreshBtn.addEventListener("click", () => {
-      refreshAll();
+      refreshAllForCurrentStation();
     });
 
     rangeSelect.addEventListener("change", () => {
-      refreshAll();
+      refreshAllForCurrentStation();
     });
 
     autoRefreshEl.addEventListener("change", () => {
@@ -793,9 +1172,31 @@
       }
     });
 
-    // Initial load
-    refreshAll();
-    setupAutoRefresh();
+    openMapsBtn.addEventListener("click", () => {
+      const st = currentStation;
+      const url = `https://www.google.com/maps?q=${encodeURIComponent(
+        st.lat + "," + st.lng
+      )}`;
+      window.open(url, "_blank");
+    });
+
+    window.addEventListener("resize", () => {
+      if (map) {
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 200);
+      }
+    });
+
+    // --- INITIAL BOOT ----------------------------------------------------
+
+    window.addEventListener("load", () => {
+      initMap();
+      renderStationList();
+      centerMapOnStation(currentStation);
+      refreshAllForCurrentStation();
+      setupAutoRefresh();
+    });
   </script>
 </body>
 </html>
