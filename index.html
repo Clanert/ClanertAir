@@ -80,7 +80,7 @@
     }
 
     .nav-logo {
-      width: 46px;             /* INCREASED LOGO */
+      width: 46px;
       height: 46px;
       border-radius: 16px;
       border: 1px solid var(--border-light);
@@ -199,6 +199,69 @@
       letter-spacing: 0.08em;
       color: var(--text-muted);
       margin: 10px 0 6px;
+    }
+
+    /* Banner (online + slogan) */
+    .banner {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .banner-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .banner-title {
+      font-weight: 900;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .banner-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .online-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(22,163,74,.35);
+      background: rgba(22,163,74,.10);
+      color: #166534;
+      font-size: 0.74rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .offline-pill {
+      border-color: rgba(220,38,38,.35);
+      background: rgba(220,38,38,.10);
+      color: #991b1b;
+    }
+    .slogan {
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: #111827;
+      background: rgba(29,78,216,.08);
+      border: 1px solid rgba(29,78,216,.18);
+      padding: 5px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
     }
 
     /* Station list */
@@ -342,7 +405,7 @@
     /* SHORTER chart */
     .chart-wrapper {
       position: relative;
-      height: 140px; /* shorter */
+      height: 140px;
       background: #fff;
       border-radius: 16px;
       border: 1px solid var(--border-light);
@@ -370,6 +433,14 @@
     @media (max-width: 640px) {
       .side-panel { width: 100%; }
       .side-panel.collapsed { transform: translateX(100%); }
+
+      /* Hide AQ scale when panel is expanded on small screens */
+      body.panel-open .aq-scale {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(10px);
+      }
     }
 
     /* ---------------- AQ SCALE BAR OVERLAY (LEFT BOTTOM) ---------------- */
@@ -386,6 +457,8 @@
       box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
       backdrop-filter: blur(10px);
       padding: 12px 12px 10px;
+      transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+      will-change: opacity, transform;
     }
 
     .aq-scale-title {
@@ -433,7 +506,6 @@
       font-size: 0.78rem;
       color: var(--text-muted);
     }
-
     .aq-scale-row strong { color: var(--text-main); }
 
     /* Make leaflet attribution subtle */
@@ -443,6 +515,31 @@
       padding: 2px 8px !important;
       margin: 6px !important;
     }
+
+    /* Modals */
+    .modal-content {
+      border-radius: 18px;
+      border: 1px solid var(--border-light);
+      box-shadow: 0 18px 45px rgba(15,23,42,0.18);
+    }
+    .modal-header { border-bottom: 1px solid var(--border-light); }
+    .modal-footer { border-top: 1px solid var(--border-light); }
+    .small-help { font-size: .78rem; color: var(--text-muted); }
+    .history-table {
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .history-table thead th {
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-muted);
+      background: #f9fafb;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .history-table td { font-size: .82rem; color: var(--text-main); }
   </style>
 </head>
 
@@ -482,7 +579,7 @@
         <i class="bi bi-speedometer2 text-success"></i>
         <span>Air Quality Scale</span>
       </div>
-      <small id="aqScaleMini">PM2.5: --</small>
+      <small id="aqScaleMini">PM2.5: -- µg/m³</small>
     </div>
 
     <div class="aqi-bar">
@@ -511,6 +608,20 @@
     </div>
 
     <div class="panel-body">
+      <!-- NEW: banner -->
+      <div class="banner" aria-label="Station status banner">
+        <div class="banner-left">
+          <div class="banner-title" id="bannerStationName">--</div>
+          <div class="banner-sub">
+            <span id="onlinePill" class="online-pill">
+              <i class="bi bi-wifi"></i> Online
+            </span>
+            <span class="text-muted" id="bannerLastSeen">Last seen: --</span>
+          </div>
+        </div>
+        <div class="slogan" title="Slogan">Breathe clean air</div>
+      </div>
+
       <!-- Station list -->
       <div class="panel-section-title">Stations</div>
       <div class="d-flex justify-content-between align-items-center mb-2">
@@ -598,7 +709,7 @@
       <div id="activities" class="activities"></div>
 
       <!-- Trends -->
-      <div class="panel-section-title mt-3">PM trends</div>
+      <div class="panel-section-title mt-3">PM trends (µg/m³)</div>
       <div class="controls-row">
         <select id="rangeSelect" class="select-small">
           <option value="1">Last hour</option>
@@ -620,11 +731,32 @@
           <i class="bi bi-arrow-repeat"></i>
           Refresh
         </button>
+
+        <!-- Password-protected view/download -->
+        <button id="historyBtn" class="btn-small" style="background:#111827;border-color:#111827;">
+          <i class="bi bi-clock-history"></i>
+          History
+        </button>
+
+        <button id="downloadCsvBtn" class="btn-small" style="background:#16a34a;border-color:#16a34a;">
+          <i class="bi bi-download"></i>
+          CSV
+        </button>
+
+        <!-- Cache control -->
+        <button id="clearCacheBtn" class="btn-small" style="background:#6b7280;border-color:#6b7280;">
+          <i class="bi bi-trash3"></i>
+          Clear cache
+        </button>
       </div>
 
       <div class="chart-caption" id="chartSubtitle">Loading data…</div>
       <div class="chart-wrapper">
         <canvas id="pmChart"></canvas>
+      </div>
+
+      <div class="small-help mt-2">
+        Tip: <strong>History</strong> and <strong>CSV</strong> are password-protected. Units: µg/m³.
       </div>
     </div>
 
@@ -636,6 +768,70 @@
       <div id="statusText" class="status-text">
         <i class="bi bi-circle text-secondary"></i>
         <span>Idle</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title mb-1">Historical Data (µg/m³)</h5>
+            <div class="small-help" id="historyMeta">--</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="history-table table-responsive">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th style="min-width:180px;">Timestamp</th>
+                  <th>PM2.5 (µg/m³)</th>
+                  <th>PM10 (µg/m³)</th>
+                </tr>
+              </thead>
+              <tbody id="historyTbody">
+                <tr><td colspan="3" class="text-muted">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="modal-footer d-flex justify-content-between">
+          <div class="small-help">Download requires password.</div>
+          <button type="button" class="btn btn-success" id="modalCsvBtn">
+            <i class="bi bi-download me-1"></i> Download CSV
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Modal -->
+  <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Protected access</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="small-help mb-2">Enter password to view or download data.</div>
+          <input id="passwordInput" type="password" class="form-control" placeholder="Password" autocomplete="off" />
+          <div id="passwordError" class="text-danger mt-2" style="display:none;font-size:.85rem;">
+            Wrong password. Try again.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="passwordConfirmBtn">
+            <i class="bi bi-shield-lock"></i> Confirm
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -660,6 +856,47 @@
         aqLabel: null
       }
     ];
+
+    // -------------------- DOWNLOAD PASSWORD --------------------
+    // NOTE: Client-side only (visible in source). For real security, enforce on server too.
+    const DOWNLOAD_PASSWORD = "Clanert360@";
+
+    // -------------------- CACHE (localStorage) --------------------
+    const CACHE_NS = "clanertair_cache_v1";
+    const CACHE_TTL_LATEST_MS = 30 * 1000;      // 30s
+    const CACHE_TTL_HISTORY_MS = 5 * 60 * 1000; // 5min
+
+    function cacheKey(type, stationId, extra) {
+      return `${CACHE_NS}:${type}:${stationId}:${extra || ""}`;
+    }
+    function cacheSet(key, payload) {
+      try {
+        const v = { t: Date.now(), payload };
+        localStorage.setItem(key, JSON.stringify(v));
+      } catch {}
+    }
+    function cacheGet(key, ttlMs) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const v = JSON.parse(raw);
+        if (!v || typeof v.t !== "number") return null;
+        if (Date.now() - v.t > ttlMs) return null;
+        return v.payload;
+      } catch {
+        return null;
+      }
+    }
+    function cacheClearAll() {
+      try {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(CACHE_NS + ":")) keys.push(k);
+        }
+        keys.forEach(k => localStorage.removeItem(k));
+      } catch {}
+    }
 
     // -------------------- DOM --------------------
     const sidePanel = document.getElementById("sidePanel");
@@ -700,12 +937,39 @@
     const aqScaleLabelEl = document.getElementById("aqScaleLabel");
     const aqScaleHintEl = document.getElementById("aqScaleHint");
 
+    // Banner DOM
+    const bannerStationNameEl = document.getElementById("bannerStationName");
+    const onlinePillEl = document.getElementById("onlinePill");
+    const bannerLastSeenEl = document.getElementById("bannerLastSeen");
+
+    // History/CSV DOM
+    const historyBtn = document.getElementById("historyBtn");
+    const downloadCsvBtn = document.getElementById("downloadCsvBtn");
+    const clearCacheBtn = document.getElementById("clearCacheBtn");
+    const historyModalEl = document.getElementById("historyModal");
+    const historyTbodyEl = document.getElementById("historyTbody");
+    const historyMetaEl = document.getElementById("historyMeta");
+    const modalCsvBtn = document.getElementById("modalCsvBtn");
+    const historyModal = historyModalEl ? new bootstrap.Modal(historyModalEl) : null;
+
+    // Password modal DOM
+    const passwordModalEl = document.getElementById("passwordModal");
+    const passwordModal = passwordModalEl ? new bootstrap.Modal(passwordModalEl) : null;
+    const passwordInputEl = document.getElementById("passwordInput");
+    const passwordConfirmBtn = document.getElementById("passwordConfirmBtn");
+    const passwordErrorEl = document.getElementById("passwordError");
+
     // -------------------- MAP & STATE --------------------
     let map = null;
     let markers = {};
     let pmChart = null;
     let autoRefreshTimer = null;
     let currentStation = stations[0];
+
+    let lastHistory = null;
+
+    // after password, do one of: "view_history" | "download_csv"
+    let pendingAction = null;
 
     // -------------------- DAY/NIGHT --------------------
     function updateDayNightIcon() {
@@ -783,7 +1047,6 @@
         aqiPointerEl.style.left = "0%";
         return;
       }
-      // map 0..250 to 0..100%
       const clamped = Math.max(0, Math.min(pm25, 250));
       const pct = (clamped / 250) * 100;
       aqiPointerEl.style.left = pct + "%";
@@ -858,25 +1121,38 @@
       `).join("");
     }
 
-    // -------------------- API CALLS --------------------
+    // -------------------- API CALLS (WITH CACHE) --------------------
     async function fetchLatest(station) {
+      const key = cacheKey("latest", station.stationId, "");
+      const cached = cacheGet(key, CACHE_TTL_LATEST_MS);
+      if (cached) return cached;
+
       const url = station.dataUrl + "?mode=latest&station=" + encodeURIComponent(station.stationId);
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: "no-store" });
       const text = await res.text();
       let data;
       try { data = JSON.parse(text); } catch { throw new Error("Server did not return JSON."); }
       if (data.error === "no_data") throw new Error("No data available yet.");
+
+      cacheSet(key, data);
       return data;
     }
 
     async function fetchHistory(station, hours) {
+      const key = cacheKey("history", station.stationId, String(hours));
+      const cached = cacheGet(key, CACHE_TTL_HISTORY_MS);
+      if (cached) return cached;
+
       const url = station.dataUrl
         + "?mode=history&station=" + encodeURIComponent(station.stationId)
         + "&hours=" + encodeURIComponent(hours);
-      const res = await fetch(url);
+
+      const res = await fetch(url, { cache: "no-store" });
       const text = await res.text();
       let data;
       try { data = JSON.parse(text); } catch { throw new Error("History response not JSON."); }
+
+      cacheSet(key, data);
       return data;
     }
 
@@ -895,13 +1171,25 @@
       const aqInfo = classifyAirQuality(pm25);
       station.aqLabel = aqInfo.label;
 
-      // Top mood + overlay
       aqMoodEl.innerHTML = aqInfo.moodIcon;
-      aqScaleMiniEl.textContent = "PM2.5: " + (isNaN(pm25) ? "--" : pm25.toFixed(1));
+
+      // Simple overlay labels (µg/m³ everywhere)
+      aqScaleMiniEl.textContent = "PM2.5: " + (isNaN(pm25) ? "--" : pm25.toFixed(1)) + " µg/m³";
       aqScaleLabelEl.textContent = aqInfo.label;
       aqScaleHintEl.innerHTML = `<i class="bi bi-info-circle"></i> ${aqInfo.message}`;
 
       setAqiPointerFromPm25(pm25);
+
+      // Banner updates
+      bannerStationNameEl.textContent = station.name;
+      const lastSeen = formatTimestampFull(latest.timestamp);
+      bannerLastSeenEl.textContent = "Last seen: " + lastSeen;
+
+      const isOnline = isStationOnline(latest.timestamp);
+      onlinePillEl.className = "online-pill" + (isOnline ? "" : " offline-pill");
+      onlinePillEl.innerHTML = isOnline
+        ? `<i class="bi bi-wifi"></i> Online`
+        : `<i class="bi bi-wifi-off"></i> Offline`;
 
       // Cards
       aqStatusEl.textContent = aqInfo.label;
@@ -915,12 +1203,20 @@
       renderActivities(aqInfo.label);
 
       timestampTextEl.innerHTML =
-        `<i class="bi bi-clock"></i> <span>Last update: ${formatTimestampFull(latest.timestamp)}</span>`;
+        `<i class="bi bi-clock"></i> <span>Last update: ${lastSeen}</span>`;
 
       stationAreaTextEl.textContent = station.area;
 
       updateMarkerForStation(station, pm25, pm10, temp, hum, aqInfo);
       renderStationList(stationSearchEl.value);
+    }
+
+    function isStationOnline(ts) {
+      // consider online if latest timestamp within last 10 minutes
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return false;
+      const diff = Date.now() - d.getTime();
+      return diff >= 0 && diff <= (10 * 60 * 1000);
     }
 
     function updateMarkerForStation(station, pm25, pm10, temp, hum, aqInfo) {
@@ -943,24 +1239,20 @@
       `);
     }
 
-    // Dynamic Y scale based on data
     function computeNiceMax(values) {
       const nums = values.filter(v => typeof v === "number" && !isNaN(v));
       if (!nums.length) return 50;
       const max = Math.max(...nums);
-      const min = Math.min(...nums);
-
-      // If flat, add some headroom
       const base = Math.max(max, 5);
-      const headroom = base * 0.15; // 15%
+      const headroom = base * 0.15;
       const raw = base + headroom;
-
-      // Round up to "nice" steps (10s)
       const step = raw <= 50 ? 5 : raw <= 100 ? 10 : raw <= 200 ? 20 : 50;
       return Math.ceil(raw / step) * step;
     }
 
     function updateChartFromHistory(history) {
+      lastHistory = history;
+
       let points = history.points || [];
       const hours = history.hours;
 
@@ -987,7 +1279,6 @@
         return isNaN(v) ? null : v;
       });
 
-      // scale according to data currently visible
       const combined = [...pm25Data, ...(showPm10El.checked ? pm10Data : [])].filter(v => v != null);
       const niceMax = computeNiceMax(combined);
 
@@ -1000,7 +1291,7 @@
           labels,
           datasets: [
             {
-              label: "PM2.5",
+              label: "PM2.5 (µg/m³)",
               data: pm25Data,
               borderWidth: 2,
               tension: 0.25,
@@ -1009,7 +1300,7 @@
               backgroundColor: "rgba(22,163,74,0.12)"
             },
             {
-              label: "PM10",
+              label: "PM10 (µg/m³)",
               data: pm10Data,
               borderWidth: 1.6,
               tension: 0.25,
@@ -1046,7 +1337,8 @@
               ticks: { color: "#6b7280" },
               grid: { color: "#e5e7eb" },
               suggestedMin: 0,
-              suggestedMax: niceMax
+              suggestedMax: niceMax,
+              title: { display: true, text: "µg/m³" }
             }
           }
         }
@@ -1136,7 +1428,6 @@
     function initMap() {
       const first = stations[0];
 
-      // remove zoom controls (top left)
       map = L.map("map", { zoomControl: false }).setView([first.lat, first.lng], 13);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1160,6 +1451,7 @@
       });
 
       stationAreaTextEl.textContent = first.area;
+      bannerStationNameEl.textContent = first.name;
     }
 
     function centerMapOnStation(station) {
@@ -1202,17 +1494,171 @@
       }
     }
 
-    // -------------------- PANEL TOGGLE --------------------
+    // -------------------- PANEL TOGGLE + AQ SCALE HIDE ON MOBILE --------------------
+    function setMobileAqScaleVisibility(panelCollapsed) {
+      if (window.matchMedia("(max-width: 640px)").matches) {
+        document.body.classList.toggle("panel-open", !panelCollapsed);
+      } else {
+        document.body.classList.remove("panel-open");
+      }
+    }
+
     function togglePanel() {
       const collapsed = sidePanel.classList.toggle("collapsed");
       panelToggle.textContent = collapsed ? "❮" : "❯";
+      setMobileAqScaleVisibility(collapsed);
       if (map) setTimeout(() => map.invalidateSize(), 250);
     }
 
     panelToggle.addEventListener("click", togglePanel);
     navToggle.addEventListener("click", togglePanel);
 
-    // -------------------- EVENTS --------------------
+    // -------------------- PASSWORD GATE --------------------
+    function showPassword(action) {
+      pendingAction = action; // "view_history" | "download_csv"
+      passwordErrorEl.style.display = "none";
+      passwordInputEl.value = "";
+      passwordModal.show();
+      setTimeout(() => passwordInputEl.focus(), 150);
+    }
+
+    async function afterPasswordSuccess() {
+      if (pendingAction === "view_history") {
+        pendingAction = null;
+        await openHistoryModal();
+      } else if (pendingAction === "download_csv") {
+        pendingAction = null;
+        await doCsvDownload();
+      } else {
+        pendingAction = null;
+      }
+    }
+
+    passwordConfirmBtn.addEventListener("click", async () => {
+      const entered = passwordInputEl.value || "";
+      if (entered !== DOWNLOAD_PASSWORD) {
+        passwordErrorEl.style.display = "block";
+        return;
+      }
+      passwordErrorEl.style.display = "none";
+      passwordModal.hide();
+      try {
+        await afterPasswordSuccess();
+      } catch (e) {
+        console.error(e);
+        alert("Action failed. Please try again.");
+      }
+    });
+
+    passwordInputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") passwordConfirmBtn.click();
+    });
+
+    // -------------------- HISTORY VIEW --------------------
+    async function openHistoryModal() {
+      if (!historyModal) return;
+
+      historyTbodyEl.innerHTML = `<tr><td colspan="3" class="text-muted">Loading…</td></tr>`;
+      const hours = parseInt(rangeSelect.value, 10) || 1;
+      historyMetaEl.textContent = `${currentStation.name} · last ${hours} h`;
+
+      try {
+        if (!lastHistory || String(lastHistory.hours) !== String(hours)) {
+          lastHistory = await fetchHistory(currentStation, hours);
+        }
+
+        const pts = (lastHistory.points || [])
+          .filter(p => p && p.timestamp)
+          .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        const limited = pts.slice(0, 300);
+
+        historyMetaEl.textContent =
+          `${currentStation.name} · last ${hours} h · showing ${limited.length} of ${pts.length} points`;
+
+        if (!limited.length) {
+          historyTbodyEl.innerHTML = `<tr><td colspan="3" class="text-muted">No data for this range.</td></tr>`;
+        } else {
+          historyTbodyEl.innerHTML = limited.map(p => `
+            <tr>
+              <td>${formatTimestampFull(p.timestamp)}</td>
+              <td>${safeNum(p.pm25, 1) || "<span class='text-muted'>--</span>"}</td>
+              <td>${safeNum(p.pm10, 1) || "<span class='text-muted'>--</span>"}</td>
+            </tr>
+          `).join("");
+        }
+
+        historyModal.show();
+      } catch (e) {
+        console.error(e);
+        historyTbodyEl.innerHTML = `<tr><td colspan="3" class="text-danger">Failed to load history.</td></tr>`;
+      }
+    }
+
+    // -------------------- CSV DOWNLOAD --------------------
+    function safeNum(v, digits = 1) {
+      const n = parseFloat(v);
+      return isNaN(n) ? "" : n.toFixed(digits);
+    }
+
+    function toCsv(points) {
+      const header = ["timestamp","pm25_ugm3","pm10_ugm3"];
+      const rows = (points || []).map(p => {
+        const ts = p.timestamp ?? "";
+        const pm25 = safeNum(p.pm25, 1);
+        const pm10 = safeNum(p.pm10, 1);
+        return [`"${String(ts).replace(/"/g,'""')}"`, pm25, pm10].join(",");
+      });
+      return [header.join(","), ...rows].join("\n");
+    }
+
+    function downloadTextFile(filename, text) {
+      const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function formatCsvFilename() {
+      const hours = parseInt(rangeSelect.value, 10) || 1;
+      const safeStation = (currentStation.stationId || "station").replace(/[^a-z0-9-_]+/gi, "_");
+      const now = new Date();
+      const stamp = now.toISOString().replace(/[:.]/g, "-");
+      return `${safeStation}_history_${hours}h_${stamp}.csv`;
+    }
+
+    async function doCsvDownload() {
+      const hours = parseInt(rangeSelect.value, 10) || 1;
+      if (!lastHistory || String(lastHistory.hours) !== String(hours)) {
+        lastHistory = await fetchHistory(currentStation, hours);
+      }
+      const csv = toCsv(lastHistory.points || []);
+      downloadTextFile(formatCsvFilename(), csv);
+    }
+
+    // Buttons (NOW PASSWORD REQUIRED FOR VIEW TOO)
+    historyBtn.addEventListener("click", () => showPassword("view_history"));
+    downloadCsvBtn.addEventListener("click", () => showPassword("download_csv"));
+    modalCsvBtn.addEventListener("click", () => showPassword("download_csv"));
+
+    // Cache clear
+    clearCacheBtn.addEventListener("click", () => {
+      cacheClearAll();
+      lastHistory = null;
+      statusTextEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> Cache cleared</span>`;
+      statusTextEl.className = "status-text ok";
+      setTimeout(() => {
+        statusTextEl.innerHTML = `<span class="text-muted"><i class="bi bi-circle"></i> Idle</span>`;
+        statusTextEl.className = "status-text";
+      }, 1500);
+    });
+
+    // -------------------- OTHER EVENTS --------------------
     refreshBtn.addEventListener("click", refreshAllForCurrentStation);
     rangeSelect.addEventListener("change", refreshAllForCurrentStation);
 
@@ -1221,7 +1667,6 @@
     showPm10El.addEventListener("change", () => {
       if (pmChart) {
         pmChart.data.datasets[1].hidden = !showPm10El.checked;
-        // recompute scale based on what is visible
         pmChart.update();
       }
       refreshAllForCurrentStation();
@@ -1231,6 +1676,7 @@
 
     window.addEventListener("resize", () => {
       if (map) setTimeout(() => map.invalidateSize(), 200);
+      setMobileAqScaleVisibility(sidePanel.classList.contains("collapsed"));
     });
 
     // -------------------- BOOT --------------------
@@ -1243,6 +1689,8 @@
       centerMapOnStation(currentStation);
       refreshAllForCurrentStation();
       setupAutoRefresh();
+
+      setMobileAqScaleVisibility(sidePanel.classList.contains("collapsed"));
     });
   </script>
 </body>
