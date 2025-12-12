@@ -52,7 +52,6 @@
       font-size:1.05rem;font-weight:900;display:flex;align-items:center;gap:8px;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1
     }
-    .nav-sub{font-size:.8rem;color:var(--text-muted);display:flex;align-items:center;gap:10px;min-width:0}
     .nav-toggle{
       border-radius:999px;border:1px solid var(--border-light);background:#f9fafb;
       width:44px;height:44px;display:flex;align-items:center;justify-content:center;
@@ -293,7 +292,7 @@
 </head>
 
 <body>
-  <!-- Top navigation bar -->
+  <!-- Top navigation bar (CLEAN: logo + ClanertAir only) -->
   <div class="top-nav">
     <div class="nav-left">
       <img
@@ -304,11 +303,6 @@
       <div class="nav-title-block">
         <div class="nav-title">
           <span>ClanertAir</span>
-          <span id="dayNightIcon" class="ms-1"></span>
-        </div>
-        <div class="nav-sub">
-          <span id="navSub">Live</span>
-          <span id="aqMood"></span>
         </div>
       </div>
     </div>
@@ -404,7 +398,7 @@
         </div>
       </div>
 
-      <!-- DETAILS (kept as before; removed repeating info-strip section) -->
+      <!-- DETAILS -->
       <div class="details-wrap">
         <div class="cards-grid">
           <div class="card-custom card-aq">
@@ -649,15 +643,7 @@
     const navToggle = document.getElementById("navToggle");
     const navToggleIcon = document.getElementById("navToggleIcon");
 
-    const navSubEl = document.getElementById("navSub");
-    const stationCountTextEl = document.getElementById("stationCountText");
-    const stationListEl = document.getElementById("stationList");
-    const stationSearchEl = document.getElementById("stationSearch");
-    const addPrivateBtn = document.getElementById("addPrivateBtn");
-
-    const stationAreaTextEl = document.getElementById("stationAreaText");
-    const privacyBadgeEl = document.getElementById("privacyBadge");
-
+    // removed navSub/dayNight/aqMood UI (kept rest unchanged)
     const pm25El = document.getElementById("pm25");
     const pm10El = document.getElementById("pm10");
     const tempEl = document.getElementById("temp");
@@ -676,9 +662,6 @@
     const statusTextEl = document.getElementById("statusText");
     const activitiesEl = document.getElementById("activities");
 
-    const dayNightIconEl = document.getElementById("dayNightIcon");
-    const aqMoodEl = document.getElementById("aqMood");
-
     const aqiPointerEl = document.getElementById("aqiPointer");
     const aqScaleMiniEl = document.getElementById("aqScaleMini");
     const aqScaleLabelEl = document.getElementById("aqScaleLabel");
@@ -687,6 +670,14 @@
     const bannerStationNameEl = document.getElementById("bannerStationName");
     const onlinePillEl = document.getElementById("onlinePill");
     const bannerLastSeenEl = document.getElementById("bannerLastSeen");
+
+    const stationCountTextEl = document.getElementById("stationCountText");
+    const stationListEl = document.getElementById("stationList");
+    const stationSearchEl = document.getElementById("stationSearch");
+    const addPrivateBtn = document.getElementById("addPrivateBtn");
+
+    const stationAreaTextEl = document.getElementById("stationAreaText");
+    const privacyBadgeEl = document.getElementById("privacyBadge");
 
     // History/CSV DOM
     const historyBtn = document.getElementById("historyBtn");
@@ -717,26 +708,17 @@
     let lastHistory = null;
     let pendingAction = null;
 
-    // -------------------- DAY/NIGHT --------------------
-    function updateDayNightIcon() {
-      const h = new Date().getHours();
-      const isDay = h >= 6 && h < 18;
-      dayNightIconEl.innerHTML = isDay
-        ? `<i class="bi bi-sun-fill text-warning" title="Day"></i>`
-        : `<i class="bi bi-moon-stars-fill text-primary" title="Night"></i>`;
-    }
-
     // -------------------- AQ LOGIC --------------------
     function classifyAirQuality(pm25) {
       if (pm25 == null || isNaN(pm25)) {
-        return { label:"Unknown", message:"No data.", className:"aq-pill", moodIcon:`<i class="bi bi-emoji-expressionless"></i>` };
+        return { label:"Unknown", message:"No data.", className:"aq-pill" };
       }
-      if (pm25 <= 12)   return { label:"Good", message:"Clean air.", className:"aq-pill aq-good", moodIcon:`<i class="bi bi-emoji-smile-fill text-success"></i>` };
-      if (pm25 <= 35.4) return { label:"Moderate", message:"OK for most.", className:"aq-pill aq-moderate", moodIcon:`<i class="bi bi-emoji-neutral-fill text-warning"></i>` };
-      if (pm25 <= 55.4) return { label:"Sensitive", message:"Limit heavy activity.", className:"aq-pill aq-unhealthy", moodIcon:`<i class="bi bi-emoji-frown-fill text-warning"></i>` };
-      if (pm25 <= 150.4)return { label:"Unhealthy", message:"Reduce outdoor time.", className:"aq-pill aq-veryunhealthy", moodIcon:`<i class="bi bi-emoji-dizzy-fill text-danger"></i>` };
-      if (pm25 <= 250.4)return { label:"Very Unhealthy", message:"Avoid outdoors.", className:"aq-pill aq-veryunhealthy", moodIcon:`<i class="bi bi-lungs-fill text-danger"></i>` };
-      return { label:"Hazardous", message:"Stay indoors.", className:"aq-pill aq-hazardous", moodIcon:`<i class="bi bi-skull-fill" style="color:#6b21a8"></i>` };
+      if (pm25 <= 12)   return { label:"Good", message:"Clean air.", className:"aq-pill aq-good" };
+      if (pm25 <= 35.4) return { label:"Moderate", message:"OK for most.", className:"aq-pill aq-moderate" };
+      if (pm25 <= 55.4) return { label:"Sensitive", message:"Limit heavy activity.", className:"aq-pill aq-unhealthy" };
+      if (pm25 <= 150.4)return { label:"Unhealthy", message:"Reduce outdoor time.", className:"aq-pill aq-veryunhealthy" };
+      if (pm25 <= 250.4)return { label:"Very Unhealthy", message:"Avoid outdoors.", className:"aq-pill aq-veryunhealthy" };
+      return { label:"Hazardous", message:"Stay indoors.", className:"aq-pill aq-hazardous" };
     }
 
     function setAqiPointerFromPm25(pm25) {
@@ -870,7 +852,6 @@
         onlinePillEl.className = "online-pill offline-pill";
         onlinePillEl.innerHTML = `<span class="blink-dot off"></span> <i class="bi bi-wifi-off"></i> Offline`;
         timestampTextEl.innerHTML = `<i class="bi bi-clock"></i> <span>Last update: --</span>`;
-        aqMoodEl.innerHTML = "";
         aqScaleMiniEl.textContent = "PM2.5: -- µg/m³";
         aqScaleLabelEl.textContent = "--";
         aqScaleHintEl.innerHTML = `<i class="bi bi-info-circle"></i> Waiting…`;
@@ -878,7 +859,7 @@
       }
     }
 
-    // -------- Map popup (integrated repeating section) --------
+    // -------- Map popup mini panel --------
     function pillClassForAQ(label) {
       const s = (label || "").toLowerCase();
       if (s.includes("good")) return "good";
@@ -944,15 +925,12 @@
       `;
     }
 
-    // -------------------- UPDATE UI FROM DATA --------------------
     function updateMarkerForStation(station, latest, aqInfo) {
       const marker = markers[station.id];
       if (!marker) return;
 
       const colors = getMarkerColors(aqInfo.label);
       marker.setStyle({ color: colors.color, fillColor: colors.fillColor });
-
-      // bind integrated popup (replaces repeating section)
       marker.bindPopup(buildPopupHTML(station, latest, aqInfo), { closeButton: true, autoPan: true });
     }
 
@@ -970,26 +948,21 @@
       const aqInfo = classifyAirQuality(pm25);
       station.aqLabel = aqInfo.label;
 
-      // mood + overlay
-      aqMoodEl.innerHTML = aqInfo.moodIcon;
       aqScaleMiniEl.textContent = "PM2.5: " + (isNaN(pm25) ? "--" : pm25.toFixed(1)) + " µg/m³";
       aqScaleLabelEl.textContent = aqInfo.label;
       aqScaleHintEl.innerHTML = `<i class="bi bi-info-circle"></i> ${aqInfo.message}`;
       setAqiPointerFromPm25(pm25);
 
-      // Banner
       bannerStationNameEl.textContent = station.name;
       const lastSeen = formatTimestampFull(latest.timestamp);
       bannerLastSeenEl.textContent = "Last seen: " + lastSeen;
 
       const online = isStationOnline(latest.timestamp);
-
       onlinePillEl.className = "online-pill" + (online ? "" : " offline-pill");
       onlinePillEl.innerHTML = online
         ? `<span class="blink-dot"></span> <i class="bi bi-wifi"></i> Online`
         : `<span class="blink-dot off"></span> <i class="bi bi-wifi-off"></i> Offline`;
 
-      // Privacy badge
       if (station.visibility === "private") {
         privacyBadgeEl.className = "station-status-pill";
         privacyBadgeEl.innerHTML = `<i class="bi bi-lock-fill"></i> Private`;
@@ -998,7 +971,6 @@
         privacyBadgeEl.innerHTML = `<i class="bi bi-unlock"></i> Public`;
       }
 
-      // Cards
       aqStatusEl.textContent = aqInfo.label;
       aqMessageEl.textContent = aqInfo.message;
       aqCategoryPillEl.innerHTML =
@@ -1013,7 +985,6 @@
 
       stationAreaTextEl.textContent = station.area || "--";
 
-      // Map popup integration
       updateMarkerForStation(station, latest, aqInfo);
     }
 
@@ -1126,7 +1097,6 @@
       if (!q) {
         stationCountTextEl.textContent = "Type to search";
         stationListEl.innerHTML = "";
-        navSubEl.textContent = "Live";
         return;
       }
 
@@ -1136,7 +1106,6 @@
       });
 
       stationCountTextEl.textContent = visible.length ? `${visible.length} found` : "No match";
-      navSubEl.textContent = "Live · " + (currentStation ? "1 selected" : "none");
 
       stationListEl.innerHTML = "";
       visible.forEach(st => {
@@ -1188,10 +1157,7 @@
       if (!stationId) return;
 
       const exists = stations.find(s => s.stationId === stationId);
-      if (exists) {
-        selectStationById(exists.id);
-        return;
-      }
+      if (exists) { selectStationById(exists.id); return; }
 
       const st = {
         id: "private-" + stationId.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + "-" + Math.random().toString(16).slice(2,6),
@@ -1230,7 +1196,6 @@
       renderStationList(stationSearchEl.value);
       setupAutoRefresh();
 
-      // open popup on select (after refresh binds the popup)
       setTimeout(() => {
         const m = markers[station.id];
         if (m) m.openPopup();
@@ -1281,7 +1246,6 @@
         updateCardsFromLatest(station, latest);
         updateChartFromHistory(history);
 
-        // open popup with integrated info
         const m = markers[station.id];
         if (m) m.openPopup();
 
@@ -1436,7 +1400,6 @@
       downloadTextFile(formatCsvFilename(), toCsv(lastHistory.points || []));
     }
 
-    // Expose popup buttons (Leaflet popup uses inline onclick)
     window.__openHistoryFromPopup = () => showPassword("view_history");
     window.__downloadCsvFromPopup = () => showPassword("download_csv");
 
@@ -1490,9 +1453,6 @@
 
     // -------------------- BOOT --------------------
     window.addEventListener("load", () => {
-      updateDayNightIcon();
-      setInterval(updateDayNightIcon, 30000);
-
       initMap();
 
       setSelectionUI(false);
