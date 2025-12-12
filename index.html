@@ -19,13 +19,13 @@
   <style>
     :root{
       --accent:#4f46e5; --muted:#6b7280; --border:#e5e7eb; --bg:#ffffff; --chip:#f8fafc;
-      --ring:#22c55e; /* set by AQI category */
+      --ring:#22c55e;
     }
     html,body{height:100%; background:var(--bg);}
     .navbar{background:#0f172a;}
     .navbar .navbar-brand,.navbar .nav-link,.navbar .btn{color:#fff!important}
 
-    /* === LAYOUT === */
+    /* Layout */
     .app{display:block;}
     @media (min-width: 992px){
       .app{display:grid; grid-template-columns: 320px 1fr; min-height: calc(100vh - 56px);}
@@ -33,20 +33,18 @@
       .main{min-height: calc(100vh - 56px); overflow:auto;}
     }
 
-    /* Map area (height increased) */
-    .map-wrap{position:relative; height:85vh;}
+    /* Map (leave space for mobile dock) */
+    .map-wrap{position:relative; height:calc(85vh - 64px);}
     @media (min-width: 992px){ .map-wrap{height:65vh;} }
     #map{height:100%; width:100%;}
 
-    /* Online/Offline ribbon */
+    /* Status + Day/Night */
     .status-ribbon{
       position:absolute; top:.5rem; right:2.4rem; z-index:510;
       padding:.35rem .6rem; border-radius:.5rem; font-weight:600; font-size:.85rem; color:#fff;
       box-shadow:0 4px 16px rgba(0,0,0,.15);
     }
     .online{background:#22c55e}.offline{background:#ef4444}
-
-    /* Day/Night icon (top-right next to status) */
     .daynight{
       position:absolute; top:.5rem; right:.5rem; z-index:511;
       width:28px; height:28px; border-radius:50%; background:#fff; border:1px solid var(--border);
@@ -55,7 +53,7 @@
     }
     .night{color:#334155}
 
-    /* Visibility ribbon inside the KPI sheet */
+    /* Public/Private ribbon in sheet */
     .vis-ribbon{
       position:absolute; top:.5rem; right:.5rem; z-index:520;
       padding:.35rem .6rem; border-radius:.5rem; font-weight:600; font-size:.85rem; color:#fff;
@@ -64,20 +62,19 @@
     .vis-public{background:#16a34a}
     .vis-private{background:#f59e0b}
 
-    /* === Circular AQI toggle === */
+    /* Floating AQI circle toggle */
     .aqi-circle{
-      position:absolute; right:.75rem; bottom:.75rem; z-index:520; width:84px; height:84px; border-radius:50%;
+      position:absolute; right:.75rem; bottom:calc(.75rem + 64px); z-index:520; /* lift above dock on mobile */
+      width:84px; height:84px; border-radius:50%;
       background:#fff; box-shadow:0 10px 30px rgba(0,0,0,.12); border:1px solid var(--border);
-      display:flex; align-items:center; justify-content:center; cursor:pointer;
-      transition:transform .15s ease;
+      display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .15s ease;
     }
+    @media (min-width: 992px){ .aqi-circle{ bottom:.75rem; } } /* desktop */
     .aqi-circle:active{ transform:scale(.98); }
-    .aqi-circle .inner{ text-align:center; }
-    .aqi-circle .val{ font-weight:800; font-size:1.25rem; line-height:1; }
-    .aqi-circle .lbl{ font-size:.7rem; color:var(--muted); margin-top:2px; }
-    .aqi-circle .badge-aqi{ font-size:.65rem; margin-top:.25rem; }
-
-    /* Revolving ring */
+    .aqi-circle .inner{text-align:center;}
+    .aqi-circle .val{font-weight:800; font-size:1.25rem; line-height:1;}
+    .aqi-circle .lbl{font-size:.7rem; color:var(--muted); margin-top:2px;}
+    .aqi-circle .badge-aqi{font-size:.65rem; margin-top:.25rem;}
     .aqi-circle::before{
       content:""; position:absolute; inset:-6px; border-radius:50%;
       background:conic-gradient(from 0deg, color-mix(in srgb, var(--ring) 25%, transparent) 0 360deg);
@@ -88,20 +85,18 @@
     }
     @keyframes spin { to { transform: rotate(360deg);} }
 
-    /* KPI sheet (expands above the circle; vertical stack) */
+    /* KPI sheet (kept intact) */
     .sheet{
       position:absolute; right:.75rem; z-index:500;
       background:#fff; border:1px solid var(--border); border-radius:1rem; box-shadow:0 10px 30px rgba(0,0,0,.08);
       padding:.75rem .75rem .5rem; display:none; width:min(92vw, 680px);
-      bottom:calc(84px + 1rem); /* align top vertically above the circle */
+      bottom:calc(84px + 1rem + 64px); /* above circle & dock */
       max-height:65vh; overflow:auto;
     }
     .sheet.open{ display:block; }
     @media (min-width: 992px){
       .sheet{ width:min(50vw, 680px); bottom:calc(84px + 1rem); }
     }
-
-    /* KPI chips inside sheet (vertical when open) */
     .kpis{display:flex; flex-direction:column; gap:.5rem;}
     @media (min-width: 992px){
       .kpis{display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:.5rem;}
@@ -128,8 +123,24 @@
     #historyChart{height:110px!important; max-height:140px;}
     @media (min-width: 992px){ #historyChart{height:140px!important;} }
 
-    /* Hidden (CSV table) */
     .hidden{display:none!important}
+
+    /* ===== Mobile Dock (NEW) ===== */
+    .mobile-dock{
+      position:fixed; bottom:0; left:0; right:0; z-index:550;
+      background:#ffffffea; backdrop-filter: blur(6px);
+      border-top:1px solid var(--border);
+      padding:.4rem .75rem;
+      display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+    }
+    .dock-btn{
+      flex:1 1 0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.15rem;
+      border:1px solid var(--border); background:#fff; height:48px; border-radius:999px;
+      font-size:.75rem; color:#111827;
+    }
+    .dock-btn i{ font-size:1.15rem; }
+    .dock-primary{ border-color:#dbeafe; background:#eff6ff; color:#1d4ed8; }
+    @media (min-width: 992px){ .mobile-dock{ display:none; } }
   </style>
 </head>
 <body>
@@ -197,13 +208,13 @@
       <section class="map-wrap">
         <div id="map"></div>
 
-        <!-- Day/Night icon -->
+        <!-- Day/Night -->
         <div id="dayNightIcon" class="daynight" title="Day/Night"><i class="bi bi-sun"></i></div>
 
         <!-- Online/Offline -->
         <div id="statusRibbon" class="status-ribbon offline">Offline</div>
 
-        <!-- Circular AQI toggle -->
+        <!-- AQI toggle -->
         <button id="aqiCircle" class="aqi-circle" aria-expanded="false" aria-controls="kpiSheet">
           <div class="inner">
             <div class="val" id="circleAQI">—</div>
@@ -212,7 +223,7 @@
           </div>
         </button>
 
-        <!-- KPI SHEET (expands above the circle, vertical stack) -->
+        <!-- KPI SHEET -->
         <div id="kpiSheet" class="sheet" role="region" aria-label="Live station KPIs">
           <div id="visibilityRibbon" class="vis-ribbon vis-public">Public</div>
 
@@ -226,11 +237,12 @@
             </div>
           </div>
 
+          <!-- Minimal KPI chips -->
           <div class="kpis">
             <div class="kpi"><div class="label">PM2.5</div><div class="value" id="kpiPm25">—</div><div class="text-secondary small">µg/m³</div></div>
             <div class="kpi"><div class="label">PM10</div><div class="value" id="kpiPm10">—</div><div class="text-secondary small">µg/m³</div></div>
-            <div class="kpi"><div class="label">Temp <i class="bi bi-thermometer-half"></i></div><div class="value" id="kpiTemp">—</div><div class="text-secondary small">°C</div></div>
-            <div class="kpi"><div class="label">Humidity <i class="bi bi-droplet-half"></i></div><div class="value" id="kpiHum">—</div><div class="text-secondary small">%</div></div>
+            <div class="kpi"><div class="label"><i class="bi bi-thermometer-half"></i> Temp</div><div class="value" id="kpiTemp">—</div><div class="text-secondary small">°C</div></div>
+            <div class="kpi"><div class="label"><i class="bi bi-droplet-half"></i> Humidity</div><div class="value" id="kpiHum">—</div><div class="text-secondary small">%</div></div>
             <div class="kpi aqi-chip">
               <div class="label">AQI</div>
               <div class="d-flex align-items-center gap-2">
@@ -242,9 +254,17 @@
             </div>
           </div>
         </div>
+
+        <!-- ===== Mobile Dock (icon-first controls) ===== -->
+        <div class="mobile-dock d-lg-none">
+          <button id="dockLatest" class="dock-btn" aria-label="Latest"><i class="bi bi-broadcast-pin"></i><span>Latest</span></button>
+          <button id="dockHistory" class="dock-btn" aria-label="History"><i class="bi bi-graph-up"></i><span>History</span></button>
+          <button id="dockRefresh" class="dock-btn dock-primary" aria-label="Refresh"><i class="bi bi-arrow-repeat"></i><span>Refresh</span></button>
+          <button id="dockControls" class="dock-btn" aria-label="Controls"><i class="bi bi-sliders"></i><span>More</span></button>
+        </div>
       </section>
 
-      <!-- MOBILE CONTROLS -->
+      <!-- MOBILE CONTROLS (offcanvas) -->
       <div class="offcanvas offcanvas-end d-lg-none" tabindex="-1" id="controlsDrawer">
         <div class="offcanvas-header">
           <h5 class="offcanvas-title"><i class="bi bi-sliders"></i> Controls</h5>
@@ -273,8 +293,7 @@
       </div>
 
       <!-- ANALYTICS -->
-      <section class="container-fluid px-3 py-3">
-        <!-- Activities -->
+      <section class="container-fluid px-3 py-3 pb-5 pb-md-3"><!-- extra bottom pad so dock doesn't overlap -->
         <div class="card mb-3">
           <div class="card-body">
             <h6 class="card-title mb-3">Activities & Air Quality</h6>
@@ -286,7 +305,6 @@
           </div>
         </div>
 
-        <!-- PM Trends (shorter) -->
         <div class="card mb-3">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
@@ -303,7 +321,6 @@
           </div>
         </div>
 
-        <!-- Averages -->
         <div class="card mb-3">
           <div class="card-body">
             <h6 class="card-title mb-2">Averages (last <span id="avgHoursLabel2">—</span>h)</h6>
@@ -321,7 +338,6 @@
           </div>
         </div>
 
-        <!-- Hidden table (CSV) -->
         <div id="historyTableWrap" class="card hidden">
           <div class="card-body">
             <div class="table-responsive">
@@ -333,7 +349,6 @@
           </div>
         </div>
 
-        <!-- Footer -->
         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 border-top pt-3 mt-3">
           <div class="small text-secondary">© Clanert Sustain</div>
           <div class="small"><a href="https://www.clanertsustain.co.tz" class="link-secondary text-decoration-none" target="_blank" rel="noreferrer">www.clanertsustain.co.tz</a> · <i class="bi bi-telephone"></i> +255 621 667 315</div>
@@ -365,13 +380,13 @@
     const $avgAQIVal=el("avgAQIVal"), $avgAQIBadge=el("avgAQIBadge"), $avgAQIEmoji=el("avgAQIEmoji"), $avgHoursLabel=el("avgHoursLabel"), $avgHoursLabel2=el("avgHoursLabel2");
     const $avgAQIVal2=el("avgAQIVal2"), $avgAQIBadge2=el("avgAQIBadge2"), $avgAQIEmoji2=el("avgAQIEmoji2");
     const $activitiesGrid=el("activitiesGrid");
-    // selectors (desktop + mobile)
+    // selectors
     const $stationSelect=el("stationSelect"), $stationSearch=el("stationSearch"), $unlockInput=el("unlockInput"), $btnUnlock=el("btnUnlock"), $unlockMsg=el("unlockMsg"), $hours=el("hoursInput");
     const $stationSelect_m=el("stationSelect_m"), $stationSearch_m=el("stationSearch_m"), $unlockInput_m=el("unlockInput_m"), $btnUnlock_m=el("btnUnlock_m"), $hours_m=el("hoursInput_m"), $unlockMsg_m=el("unlockMsg_m");
     const $alert=el("alert"), $alertMsg=el("alertMsg"), $alert_m=el("alert_m"), $alertMsg_m=el("alertMsg_m");
     const btns = { ctlLatest: el("btnCtlLatest"), ctlHistory: el("btnCtlHistory"), ctlAll: el("btnCtlAll"), downloadCsv: el("btnDownloadCsv") };
     const btns_m = { ctlLatest: el("btnCtlLatest_m"), ctlHistory: el("btnCtlHistory_m"), ctlAll: el("btnCtlAll_m"), downloadCsv: el("btnDownloadCsv_m") };
-    // circle + sheet + day/night
+    // AQI toggle + sheet + day/night
     const $aqiCircle = el("aqiCircle"), $circleAQI = el("circleAQI"), $circleAQIBadge = el("circleAQIBadge"), $kpiSheet = el("kpiSheet");
     const $dayNightIcon = el("dayNightIcon");
 
@@ -444,21 +459,18 @@
       return Math.max(1, Math.floor(h));
     }
 
-    /* ===== Day/Night icon ===== */
+    /* Day/Night */
     function setDayNightIcon(){
       try{
-        // Africa/Dar_es_Salaam is UTC+3; "day" ~ 06:00–18:00 local
-        const now = new Date();
-        const utc = now.getUTCHours();
-        const hr = (utc + 3 + 24) % 24;
-        const isDay = hr >= 6 && hr < 18;
+        const now=new Date(); const hr=(now.getUTCHours()+3+24)%24; // Dar es Salaam
+        const isDay=hr>=6 && hr<18;
         $dayNightIcon.innerHTML = `<i class="bi ${isDay?'bi-sun':'bi-moon'}"></i>`;
         $dayNightIcon.classList.toggle('night', !isDay);
         $dayNightIcon.title = isDay ? 'Daytime' : 'Night';
       }catch{}
     }
 
-    /* ===== Activities ===== */
+    /* Activities */
     function activitiesFor(cat){
       const ok=(t,i,n)=>({cls:"ok",icon:i,title:t,note:n});
       const ca=(t,i,n)=>({cls:"caution",icon:i,title:t,note:n});
@@ -468,7 +480,7 @@
       return [av("Running","bi-activity","Avoid vigorous exercise."),av("Outdoor play","bi-tree","Move indoors if possible."),av("Commuting","bi-signpost","Reduce exposure; mask recommended."),av("Windows closed","bi-wind","Filter/recirculate air.")];
     }
     function renderActivities(cat){
-      $activitiesGrid.innerHTML = activitiesFor(cat).map(it => `
+      document.getElementById("activitiesGrid").innerHTML = activitiesFor(cat).map(it => `
         <div class="col-12 col-md-6 col-xxl-3">
           <div class="p-2 border rounded-3 d-flex align-items-center gap-2">
             <span class="badge ${it.cls==='ok'?'text-bg-success':it.cls==='caution'?'text-bg-warning':'text-bg-danger'}"><i class="bi ${it.icon}"></i></span>
@@ -477,71 +489,75 @@
         </div>`).join("");
     }
 
-    /* ===== Circle AQI helpers ===== */
+    /* AQI ring */
     function setCircleAQI(aqi, cat){
-      $circleAQI.textContent = aqi ?? "—";
-      $circleAQIBadge.textContent = cat.code;
-      $circleAQIBadge.className = `badge badge-aqi ${cat.cls}`;
+      document.getElementById("circleAQI").textContent = aqi ?? "—";
+      const b=document.getElementById("circleAQIBadge");
+      b.textContent = cat.code; b.className = `badge badge-aqi ${cat.cls}`;
       document.documentElement.style.setProperty('--ring', cat.ring || '#22c55e');
     }
 
-    /* ===== Renderers ===== */
+    /* Renderers */
     function updateHeader(st){
-      $headerStationName.textContent = st.name;
-      $headerStationArea.textContent = st.area || "—";
+      document.getElementById("headerStationName").textContent = st.name;
+      document.getElementById("headerStationArea").textContent = st.area || "—";
       const isPublic = PUBLIC_STATIONS.has(st.station) || st.visibility==="public";
-      $visibilityRibbon.textContent = isPublic ? "Public" : "Private";
-      $visibilityRibbon.className = `vis-ribbon ${isPublic ? "vis-public" : "vis-private"}`;
+      const vr=document.getElementById("visibilityRibbon");
+      vr.textContent = isPublic ? "Public" : "Private";
+      vr.className = `vis-ribbon ${isPublic ? "vis-public" : "vis-private"}`;
     }
     function updateStatusRibbon(ts){
       const online = minutesSince(ts) <= ONLINE_THRESHOLD_MIN;
-      $statusRibbon.textContent = online ? "Online" : "Offline";
-      $statusRibbon.className = `status-ribbon ${online?"online":"offline"}`;
+      const sr=document.getElementById("statusRibbon");
+      sr.textContent = online ? "Online" : "Offline";
+      sr.className = `status-ribbon ${online?"online":"offline"}`;
     }
     function setLiveAQIPill(aqi,cat){
-      el("liveAQIVal").textContent = aqi ?? "—";
-      el("liveAQIBadge").textContent = cat.code; el("liveAQIBadge").className = `badge badge-aqi ${cat.cls}`;
-      el("liveAQIEmoji").className = `bi ${cat.emoji}`;
+      document.getElementById("liveAQIVal").textContent = aqi ?? "—";
+      const b=document.getElementById("liveAQIBadge"); b.textContent = cat.code; b.className = `badge badge-aqi ${cat.cls}`;
+      document.getElementById("liveAQIEmoji").className = `bi ${cat.emoji}`;
     }
     function setAvgAQIPill(aqi,cat,h){
-      $avgHoursLabel.textContent = h; $avgHoursLabel2.textContent = h;
-      $avgAQIVal.textContent = aqi ?? "—";
-      $avgAQIBadge.textContent = cat.code; $avgAQIBadge.className = `badge badge-aqi ${cat.cls}`;
-      $avgAQIEmoji.textContent = ""; $avgAQIEmoji.className = `bi ${cat.emoji}`;
-      $avgAQIVal2.textContent = aqi ?? "—";
-      $avgAQIBadge2.textContent = cat.code; $avgAQIBadge2.className = `badge badge-aqi ${cat.cls}`;
-      $avgAQIEmoji2.textContent = ""; $avgAQIEmoji2.className = `bi ${cat.emoji}`;
+      document.getElementById("avgHoursLabel").textContent = h; document.getElementById("avgHoursLabel2").textContent = h;
+      document.getElementById("avgAQIVal").textContent = aqi ?? "—";
+      const b1=document.getElementById("avgAQIBadge"); b1.textContent = cat.code; b1.className = `badge badge-aqi ${cat.cls}`;
+      document.getElementById("avgAQIEmoji").className = `bi ${cat.emoji}`;
+      document.getElementById("avgAQIVal2").textContent = aqi ?? "—";
+      const b2=document.getElementById("avgAQIBadge2"); b2.textContent = cat.code; b2.className = `badge badge-aqi ${cat.cls}`;
+      document.getElementById("avgAQIEmoji2").className = `bi ${cat.emoji}`;
     }
 
     function renderLatest(j, st){
       if(j.error) throw new Error(j.message||j.error);
-      $kpiPm25.textContent = fmtNum(j.pm25);
-      $kpiPm10.textContent = fmtNum(j.pm10);
-      $kpiTemp.textContent = fmtNum(j.temperature);
-      $kpiHum.textContent  = fmtNum(j.humidity);
-      $kpiTime.textContent = fmtTime(j.timestamp);
+      document.getElementById("kpiPm25").textContent = fmtNum(j.pm25);
+      document.getElementById("kpiPm10").textContent = fmtNum(j.pm10);
+      document.getElementById("kpiTemp").textContent = fmtNum(j.temperature);
+      document.getElementById("kpiHum").textContent  = fmtNum(j.humidity);
+      document.getElementById("kpiTime").textContent = fmtTime(j.timestamp);
 
       const aqi25=aqiPm25(j.pm25), aqi10=aqiPm10(j.pm10);
       const aqi = Math.max(aqi25??0, aqi10??0) || null;
       const cat = aqiCategory(aqi);
 
-      $kpiAQI.textContent = aqi ?? "—";
-      $kpiAQIBadge.textContent = cat.code; $kpiAQIBadge.className = `badge badge-aqi ${cat.cls}`;
-      $kpiAQIEmoji.className = `bi ${cat.emoji}`;
-      $kpiAQINote.textContent = cat.note;
+      document.getElementById("kpiAQI").textContent = aqi ?? "—";
+      const b=document.getElementById("kpiAQIBadge"); b.textContent = cat.code; b.className = `badge badge-aqi ${cat.cls}`;
+      document.getElementById("kpiAQIEmoji").className = `bi ${cat.emoji}`;
+      document.getElementById("kpiAQINote").textContent = cat.note;
 
       setCircleAQI(aqi, cat);
       setMarkerStyle(cat.cls);
       marker.setLatLng([st.lat, st.lng]);
-      setMarkerPopup(`
-        <div class="small">
-          <div class="fw-semibold mb-1">${st.name}</div>
-          <div>AQI: <span class="badge badge-aqi ${cat.cls}">${aqi ?? "—"} · ${cat.code}</span> <i class="bi ${cat.emoji}"></i></div>
-          <div>PM2.5: <b>${fmtNum(j.pm25)}</b> µg/m³ · PM10: <b>${fmtNum(j.pm10)}</b> µg/m³</div>
-          <div>Temp: <b>${fmtNum(j.temperature)}</b> °C · Humidity: <b>${fmtNum(j.humidity)}</b> %</div>
-          <div class="text-secondary">Last: ${fmtTime(j.timestamp)}</div>
-        </div>
-      `);
+      (function setPopup(){
+        const html=`
+          <div class="small">
+            <div class="fw-semibold mb-1">${st.name}</div>
+            <div>AQI: <span class="badge badge-aqi ${cat.cls}">${aqi ?? "—"} · ${cat.code}</span> <i class="bi ${cat.emoji}"></i></div>
+            <div>PM2.5: <b>${fmtNum(j.pm25)}</b> µg/m³ · PM10: <b>${fmtNum(j.pm10)}</b> µg/m³</div>
+            <div>Temp: <b>${fmtNum(j.temperature)}</b> °C · Humidity: <b>${fmtNum(j.humidity)}</b> %</div>
+            <div class="text-secondary">Last: ${fmtTime(j.timestamp)}</div>
+          </div>`;
+        const p = document.getElementById('stationPopup'); if (p) p.innerHTML = html; else marker.bindPopup(html);
+      })();
 
       updateStatusRibbon(j.timestamp);
       setLiveAQIPill(aqi, cat);
@@ -550,7 +566,7 @@
 
     function ensureChart(){
       if(chart) return chart;
-      chart = new Chart(el("historyChart"), {
+      chart = new Chart(document.getElementById("historyChart"), {
         type:"line",
         data:{ labels:[], datasets:[] },
         options:{
@@ -570,7 +586,7 @@
       const pts = Array.isArray(j.points) ? j.points : [];
       lastHistory = pts;
 
-      $historyBody.innerHTML = "";
+      const body=document.getElementById("historyBody"); body.innerHTML = "";
       if(pts.length){
         const frag=document.createDocumentFragment();
         pts.forEach(p=>{
@@ -578,7 +594,7 @@
           tr.innerHTML=`<td>${fmtTime(p.timestamp)}</td><td>${fmtNum(p.pm25,2)}</td><td>${fmtNum(p.pm10,2)}</td>`;
           frag.appendChild(tr);
         });
-        $historyBody.appendChild(frag);
+        body.appendChild(frag);
       }
 
       const labels = pts.map(p=>fmtHHMM(p.timestamp));
@@ -588,18 +604,19 @@
       c.data.datasets = [ mk("PM2.5 (µg/m³)","pm25"), mk("PM10 (µg/m³)","pm10") ];
       c.update();
 
+      const ribbon=document.getElementById("historyDateRibbon");
       if(pts.length){
         const first=fmtDate(pts[0].timestamp), last=fmtDate(pts[pts.length-1].timestamp);
-        $historyDateRibbon.textContent = first===last ? first : `${first} – ${last}`;
-      } else {
-        $historyDateRibbon.textContent = "—";
-      }
+        ribbon.textContent = first===last ? first : `${first} – ${last}`;
+      } else { ribbon.textContent = "—"; }
     }
     function renderAvg(j, h){
       if(j.error) throw new Error(j.message||j.error);
-      $avgPm25.textContent=fmtNum(j.pm25_avg); $avgPm10.textContent=fmtNum(j.pm10_avg);
-      $avgTemp.textContent=fmtNum(j.temperature_avg); $avgHum.textContent=fmtNum(j.humidity_avg);
-      $avgCount.textContent=j.count ?? 0;
+      document.getElementById("avgPm25").textContent=fmtNum(j.pm25_avg);
+      document.getElementById("avgPm10").textContent=fmtNum(j.pm10_avg);
+      document.getElementById("avgTemp").textContent=fmtNum(j.temperature_avg);
+      document.getElementById("avgHum").textContent=fmtNum(j.humidity_avg);
+      document.getElementById("avgCount").textContent=j.count ?? 0;
 
       const aqi25=aqiPm25(j.pm25_avg), aqi10=aqiPm10(j.pm10_avg);
       const avgAQI = (aqi25==null && aqi10==null) ? null : Math.max(aqi25??0, aqi10??0);
@@ -627,8 +644,8 @@
     function setVisibilityRibbon(stationId){
       const st=stations.find(s=>s.station===stationId);
       const isPublic = PUBLIC_STATIONS.has(stationId) || (st?.visibility==="public");
-      $visibilityRibbon.textContent = isPublic ? "Public" : "Private";
-      $visibilityRibbon.className = `vis-ribbon ${isPublic ? "vis-public" : "vis-private"}`;
+      document.getElementById("visibilityRibbon").textContent = isPublic ? "Public" : "Private";
+      document.getElementById("visibilityRibbon").className = `vis-ribbon ${isPublic ? "vis-public" : "vis-private"}`;
     }
     function upsertStation(st){
       const i=stations.findIndex(x=>x.station===st.station);
@@ -637,64 +654,73 @@
     }
     function refreshSelectors(){
       const opts = stations.map(s=>`<option value="${s.station}">${s.name} (${s.station})</option>`).join("");
-      const $stationSelect = document.getElementById("stationSelect");
-      const $stationSelect_m = document.getElementById("stationSelect_m");
-      if($stationSelect){ $stationSelect.innerHTML=opts; $stationSelect.value=selectedId; }
-      if($stationSelect_m){ $stationSelect_m.innerHTML=opts; $stationSelect_m.value=selectedId; }
+      const a=document.getElementById("stationSelect");
+      const b=document.getElementById("stationSelect_m");
+      if(a){ a.innerHTML=opts; a.value=selectedId; }
+      if(b){ b.innerHTML=opts; b.value=selectedId; }
     }
 
     /* ===== Init ===== */
     (async function init(){
       initMap();
-      setDayNightIcon(); setInterval(setDayNightIcon, 5*60*1000); // refresh day/night every 5 min
+      setDayNightIcon(); setInterval(setDayNightIcon, 5*60*1000);
 
       selectedId = stations[0].station;
       refreshSelectors();
 
-      // Controls (desktop)
-      const $stationSelect = document.getElementById("stationSelect");
-      $stationSelect?.addEventListener("change", ()=>{ selectedId=$stationSelect.value; const st=stations.find(x=>x.station===selectedId)||stations[0]; updateHeader(st); setVisibilityRibbon(selectedId); panTo(st); btns.ctlAll.click(); });
-      const $stationSearch = document.getElementById("stationSearch");
-      $stationSearch?.addEventListener("input", ()=>{});
+      // Desktop controls
+      const a=document.getElementById("stationSelect");
+      a?.addEventListener("change", ()=>{ selectedId=a.value; const st=stations.find(x=>x.station===selectedId)||stations[0]; updateHeader(st); setVisibilityRibbon(selectedId); panTo(st); btns.ctlAll.click(); });
+      document.getElementById("stationSearch")?.addEventListener("input", ()=>{});
       btns.ctlLatest.onclick=async()=>{ clearError(); try{ setBusy(true); await loadLatest(selectedId); }catch(e){ showError(e.message);}finally{ setBusy(false);} };
       btns.ctlHistory.onclick=async()=>{ clearError(); try{ setBusy(true); await loadHistory(selectedId, getHours()); }catch(e){ showError(e.message);}finally{ setBusy(false);} };
       btns.ctlAll.onclick=async()=>{ clearError(); try{ setBusy(true); const H=getHours(); await Promise.all([loadLatest(selectedId), loadHistory(selectedId,H), loadAvg(selectedId,H)]); }catch(e){ showError(e.message);}finally{ setBusy(false);} };
       btns.downloadCsv.onclick=()=>downloadCSV();
 
-      // Controls (mobile mirror)
-      const $stationSelect_m = document.getElementById("stationSelect_m");
-      $stationSelect_m?.addEventListener("change", ()=>{ selectedId=$stationSelect_m.value; refreshSelectors(); const st=stations.find(x=>x.station===selectedId)||stations[0]; updateHeader(st); setVisibilityRibbon(selectedId); panTo(st); btns.ctlAll.click(); });
+      // Mobile mirror
+      const am=document.getElementById("stationSelect_m");
+      am?.addEventListener("change", ()=>{ selectedId=am.value; refreshSelectors(); const st=stations.find(x=>x.station===selectedId)||stations[0]; updateHeader(st); setVisibilityRibbon(selectedId); panTo(st); btns.ctlAll.click(); });
       btns_m.ctlLatest.onclick = ()=> btns.ctlLatest.click();
       btns_m.ctlHistory.onclick= ()=> btns.ctlHistory.click();
       btns_m.ctlAll.onclick    = ()=> btns.ctlAll.click();
       btns_m.downloadCsv.onclick=()=> btns.downloadCsv.click();
 
-      // Unlock (desktop + mobile)
-      $btnUnlock?.addEventListener("click", ()=>unlockStation($unlockInput.value, false));
-      $btnUnlock_m?.addEventListener("click", ()=>unlockStation($unlockInput_m.value, true));
+      // Unlock
+      document.getElementById("btnUnlock")?.addEventListener("click", ()=>unlockStation(document.getElementById("unlockInput").value, false));
+      document.getElementById("btnUnlock_m")?.addEventListener("click", ()=>unlockStation(document.getElementById("unlockInput_m").value, true));
 
       async function unlockStation(raw, mobile){
         const code = (raw||"").trim();
-        (mobile?$unlockMsg_m:$unlockMsg).textContent="";
-        if(!code){ (mobile?$unlockMsg_m:$unlockMsg).textContent="Enter an exact station code/name."; return; }
+        (mobile?document.getElementById("unlockMsg_m"):document.getElementById("unlockMsg")).textContent="";
+        if(!code){ (mobile?document.getElementById("unlockMsg_m"):document.getElementById("unlockMsg")).textContent="Enter an exact station code/name."; return; }
         try{
           setBusy(true);
           const latest = await fetchJson(buildUrl("latest", code));
           const st = { station: code, name: code, area:"—", lat:FALLBACK_STATION.lat, lng:FALLBACK_STATION.lng, visibility: PUBLIC_STATIONS.has(code) ? "public" : "private" };
           upsertStation(st); selectedId=code; refreshSelectors(); updateHeader(st); setVisibilityRibbon(code); panTo(st);
-          (mobile?$unlockMsg_m:$unlockMsg).textContent = st.visibility==="private" ? "Private station unlocked." : "Public station selected.";
+          (mobile?document.getElementById("unlockMsg_m"):document.getElementById("unlockMsg")).textContent = st.visibility==="private" ? "Private station unlocked." : "Public station selected.";
           const H=getHours(); await Promise.all([renderLatest(latest, st), loadHistory(code,H), loadAvg(code,H)]);
         }catch(err){
-          (mobile?$unlockMsg_m:$unlockMsg).textContent="No data for that code. Reason: "+(err?.message||"Unknown");
+          (mobile?document.getElementById("unlockMsg_m"):document.getElementById("unlockMsg")).textContent="No data for that code. Reason: "+(err?.message||"Unknown");
           showError("Unlock failed: "+(err?.message||"Unknown error"), mobile);
         }finally{ setBusy(false); }
       }
 
-      // AQI circle toggles sheet (sheet is positioned to be above the circle and KPIs stack vertically)
-      $aqiCircle.addEventListener("click", ()=>{
-        const open = $kpiSheet.classList.toggle("open");
-        $aqiCircle.setAttribute("aria-expanded", String(open));
+      // AQI circle toggles sheet
+      document.getElementById("aqiCircle").addEventListener("click", ()=>{
+        const s=document.getElementById("kpiSheet");
+        const open = s.classList.toggle("open");
+        document.getElementById("aqiCircle").setAttribute("aria-expanded", String(open));
       });
+
+      // Mobile dock bindings (icon-first)
+      document.getElementById("dockLatest").onclick  = ()=> btns.ctlLatest.click();
+      document.getElementById("dockHistory").onclick = ()=> btns.ctlHistory.click();
+      document.getElementById("dockRefresh").onclick = ()=> btns.ctlAll.click();
+      document.getElementById("dockControls").onclick= ()=> {
+        const offcanvas = new bootstrap.Offcanvas(document.getElementById('controlsDrawer'));
+        offcanvas.show();
+      };
 
       // initial load
       const st=stations[0]; updateHeader(st); setVisibilityRibbon(selectedId); panTo(st);
