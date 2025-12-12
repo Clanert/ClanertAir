@@ -26,520 +26,269 @@
   ></script>
 
   <style>
-    :root {
-      --bg-page: #f4f5fb;
-      --bg-panel: #ffffff;
-      --bg-card: #ffffff;
-      --accent-green: #16a34a;
-      --accent-blue: #1d4ed8;
-      --accent-amber: #f59e0b;
-      --text-main: #111827;
-      --text-muted: #6b7280;
-      --border-light: #e5e7eb;
+    :root{
+      --bg-page:#f4f5fb; --bg-panel:#fff; --bg-card:#fff;
+      --accent-green:#16a34a; --accent-blue:#1d4ed8; --accent-amber:#f59e0b;
+      --text-main:#111827; --text-muted:#6b7280; --border-light:#e5e7eb;
     }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      color: var(--text-main);
-      background: var(--bg-page);
-      overflow: hidden;
-    }
-
-    #map {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text-main);background:var(--bg-page);overflow:hidden}
+    #map{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 
     /* Top bar */
-    .top-nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 62px;
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-      backdrop-filter: blur(10px);
-      z-index: 30;
+    .top-nav{
+      position:fixed;top:0;left:0;right:0;height:62px;padding:8px 12px;
+      display:flex;align-items:center;justify-content:space-between;
+      background:rgba(255,255,255,.96);box-shadow:0 10px 30px rgba(15,23,42,.12);
+      backdrop-filter:blur(10px);z-index:30;
     }
-
-    .nav-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
+    .nav-left{display:flex;align-items:center;gap:12px;min-width:0}
+    .nav-logo{
+      width:46px;height:46px;border-radius:16px;border:1px solid var(--border-light);
+      padding:6px;background:#fff;object-fit:contain;box-shadow:0 10px 18px rgba(15,23,42,.06)
     }
-
-    .nav-logo {
-      width: 46px;
-      height: 46px;
-      border-radius: 16px;
-      border: 1px solid var(--border-light);
-      padding: 6px;
-      background: #fff;
-      object-fit: contain;
-      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
+    .nav-title-block{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .nav-title{
+      font-size:1.05rem;font-weight:900;display:flex;align-items:center;gap:8px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1
     }
-
-    .nav-title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
+    .nav-sub{font-size:.8rem;color:var(--text-muted);display:flex;align-items:center;gap:10px;min-width:0}
+    .nav-toggle{
+      border-radius:999px;border:1px solid var(--border-light);background:#f9fafb;
+      width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+      cursor:pointer;font-size:1.22rem;color:var(--text-main);
+      box-shadow:0 10px 20px rgba(15,23,42,.08);
+      transition:transform .15s ease, background .15s ease;
     }
-
-    .nav-title {
-      font-size: 1.05rem;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      line-height: 1.1;
-    }
-
-    .nav-sub {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .nav-toggle {
-      border-radius: 999px;
-      border: 1px solid var(--border-light);
-      background: #f9fafb;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1.2rem;
-      color: var(--text-main);
-      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.06);
-    }
-    .nav-toggle:hover { background: #e5e7eb; }
+    .nav-toggle:hover{background:#e5e7eb;transform:translateY(-1px)}
+    .nav-toggle:active{transform:translateY(0)}
 
     /* Side panel */
-    .side-panel {
-      position: fixed;
-      top: 62px;
-      right: 0;
-      bottom: 0;
-      width: 392px;
-      max-width: 100%;
-      background: var(--bg-panel);
-      box-shadow: -10px 0 30px rgba(15, 23, 42, 0.25);
-      border-left: 1px solid var(--border-light);
-      display: flex;
-      flex-direction: column;
-      z-index: 20;
-      transform: translateX(0);
-      transition: transform 0.25s ease;
+    .side-panel{
+      position:fixed;top:62px;right:0;bottom:0;width:392px;max-width:100%;
+      background:var(--bg-panel);box-shadow:-10px 0 30px rgba(15,23,42,.25);
+      border-left:1px solid var(--border-light);
+      display:flex;flex-direction:column;z-index:20;
+      transform:translateX(0);transition:transform .25s ease;
     }
-    .side-panel.collapsed { transform: translateX(calc(100% - 48px)); }
-
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 10px;
-      border-bottom: 1px solid var(--border-light);
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(8px);
+    .side-panel.collapsed{transform:translateX(calc(100% - 52px))}
+    .panel-header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:10px 12px;border-bottom:1px solid var(--border-light);
+      background:rgba(255,255,255,.98);backdrop-filter:blur(8px)
     }
-
-    .panel-header-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .panel-header-title{
+      font-size:.9rem;font-weight:950;display:flex;align-items:center;gap:10px
     }
-
-    .panel-toggle {
-      border: 1px solid var(--border-light);
-      background: #f9fafb;
-      border-radius: 999px;
-      width: 30px;
-      height: 26px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 0.9rem;
-      color: var(--text-muted);
+    .panel-body{flex:1;overflow-y:auto;padding:10px;background:var(--bg-page)}
+    .panel-footer{
+      padding:8px 10px;border-top:1px solid var(--border-light);background:#fff;
+      font-size:.78rem;color:var(--text-muted);display:flex;justify-content:space-between;gap:8px;align-items:center
     }
-    .panel-toggle:hover { background: #e5e7eb; }
-
-    .panel-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px;
-      background: var(--bg-page);
-    }
-
-    .panel-section-title {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      margin: 10px 0 6px;
-    }
-
-    /* Banner (online + slogan) */
-    .banner {
-      background: #fff;
-      border: 1px solid var(--border-light);
-      border-radius: 16px;
-      padding: 10px 12px;
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .banner-left {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-    .banner-title {
-      font-weight: 900;
-      font-size: 0.9rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .banner-sub {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .online-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(22,163,74,.35);
-      background: rgba(22,163,74,.10);
-      color: #166534;
-      font-size: 0.74rem;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-    .offline-pill {
-      border-color: rgba(220,38,38,.35);
-      background: rgba(220,38,38,.10);
-      color: #991b1b;
-    }
-    .slogan {
-      font-size: 0.74rem;
-      font-weight: 800;
-      color: #111827;
-      background: rgba(29,78,216,.08);
-      border: 1px solid rgba(29,78,216,.18);
-      padding: 5px 10px;
-      border-radius: 999px;
-      white-space: nowrap;
-    }
-
-    /* Station list */
-    .station-search {
-      width: 100%;
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--border-light);
-      font-size: 0.8rem;
-      margin-bottom: 8px;
-      background: #fff;
-      color: var(--text-main);
-    }
-
-    .station-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-
-    .station-item {
-      background: var(--bg-card);
-      border-radius: 14px;
-      padding: 10px 10px;
-      border: 1px solid var(--border-light);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      transition: 0.15s ease;
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
-    }
-    .station-item:hover { box-shadow: 0 14px 28px rgba(15, 23, 42, 0.07); }
-    .station-item.active {
-      border-color: var(--accent-green);
-      box-shadow: 0 10px 22px rgba(22, 163, 74, 0.16);
-    }
-
-    .station-name { font-size: 0.9rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-    .station-area { font-size: 0.78rem; color: var(--text-muted); }
-
-    .station-status-pill {
-      border-radius: 999px;
-      padding: 4px 9px;
-      font-size: 0.72rem;
-      background: #f3f4f6;
-      color: var(--text-muted);
-      white-space: nowrap;
-      border: 1px solid var(--border-light);
-    }
-    .station-status-pill.good { background: rgba(22,163,74,.12); color:#166534; border-color: rgba(22,163,74,.35); }
-    .station-status-pill.moderate { background: rgba(234,179,8,.12); color:#854d0e; border-color: rgba(234,179,8,.35); }
-    .station-status-pill.unhealthy { background: rgba(249,115,22,.12); color:#9a3412; border-color: rgba(249,115,22,.35); }
-    .station-status-pill.veryunhealthy { background: rgba(239,68,68,.12); color:#7f1d1d; border-color: rgba(239,68,68,.35); }
-    .station-status-pill.hazardous { background: rgba(88,28,135,.12); color:#4a044e; border-color: rgba(126,34,206,.35); }
-
-    /* Cards */
-    .cards-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
-
-    .card-custom {
-      background: var(--bg-card);
-      border-radius: 18px;
-      padding: 12px;
-      border: 1px solid var(--border-light);
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
-    }
-
-    .card-header-line { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
-
-    .card-label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card-main { display:flex; align-items:baseline; gap:8px; }
-    .card-value { font-size: 1.55rem; font-weight: 900; }
-    .card-unit { font-size: 0.75rem; color: var(--text-muted); }
-    .card-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; }
-
-    .card-aq { background: linear-gradient(135deg, #ecfdf5, #eff6ff); }
-    .card-pm25 { background: linear-gradient(135deg, #ecfdf5, #dcfce7); }
-    .card-pm10 { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
-    .card-thermo { background: linear-gradient(135deg, #fff7ed, #fef3c7); }
-    .card-station { background: linear-gradient(135deg, #f9fafb, #e5e7eb); }
-
-    /* AQ pill */
-    .aq-pill {
-      padding: 4px 9px;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 8px;
-      border: 1px solid transparent;
-    }
-    .aq-good { background: rgba(22,163,74,.12); color:#166534; border-color: rgba(22,163,74,.5); }
-    .aq-moderate { background: rgba(234,179,8,.12); color:#854d0e; border-color: rgba(234,179,8,.5); }
-    .aq-unhealthy { background: rgba(249,115,22,.12); color:#9a3412; border-color: rgba(249,115,22,.6); }
-    .aq-veryunhealthy { background: rgba(239,68,68,.10); color:#7f1d1d; border-color: rgba(239,68,68,.6); }
-    .aq-hazardous { background: rgba(88,28,135,.12); color:#4a044e; border-color: rgba(126,34,206,.7); }
-
-    /* Activities */
-    .activities { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
-    .act {
-      background:#fff;
-      border:1px solid var(--border-light);
-      border-radius:16px;
-      padding:10px;
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
-    }
-    .act i { font-size: 1.15rem; }
-    .act-title { font-weight: 900; font-size: 0.86rem; margin:0; }
-    .act-sub { margin:2px 0 0; font-size: 0.78rem; color: var(--text-muted); }
-
-    /* Chart controls + chart */
-    .controls-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom: 8px; }
-    .select-small, .btn-small {
-      border-radius: 999px;
-      border: 1px solid var(--border-light);
-      padding: 6px 12px;
-      font-size: 0.78rem;
-      background: #fff;
-    }
-    .btn-small {
-      background: var(--accent-blue);
-      border-color: var(--accent-blue);
-      color: #fff;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-small:hover { background: #1e40af; }
-    .toggle-inline { display:inline-flex; align-items:center; gap:6px; font-size: 0.78rem; color: var(--text-muted); }
-    .toggle-inline input { accent-color: var(--accent-green); }
-
-    /* SHORTER chart */
-    .chart-wrapper {
-      position: relative;
-      height: 140px;
-      background: #fff;
-      border-radius: 16px;
-      border: 1px solid var(--border-light);
-      padding: 8px;
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-    }
-    .chart-caption { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; }
-
-    /* Footer */
-    .panel-footer {
-      padding: 8px 10px;
-      border-top: 1px solid var(--border-light);
-      background: #fff;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: center;
-    }
-    .status-text.ok { color: var(--accent-green); }
-    .status-text.error { color: #dc2626; }
+    .status-text.ok{color:var(--accent-green)}
+    .status-text.error{color:#dc2626}
 
     /* Mobile */
-    @media (max-width: 640px) {
-      .side-panel { width: 100%; }
-      .side-panel.collapsed { transform: translateX(100%); }
-
-      /* Hide AQ scale when panel is expanded on small screens */
-      body.panel-open .aq-scale {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transform: translateY(10px);
+    @media (max-width:640px){
+      .side-panel{width:100%}
+      .side-panel.collapsed{transform:translateX(100%)}
+      body.panel-open .aq-scale{
+        opacity:0;visibility:hidden;pointer-events:none;transform:translateY(10px)
       }
     }
 
-    /* ---------------- AQ SCALE BAR OVERLAY (LEFT BOTTOM) ---------------- */
-    .aq-scale {
-      position: fixed;
-      left: 12px;
-      bottom: 14px;
-      z-index: 25;
-      width: 280px;
-      max-width: calc(100vw - 24px);
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid var(--border-light);
-      border-radius: 18px;
-      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
-      backdrop-filter: blur(10px);
-      padding: 12px 12px 10px;
-      transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
-      will-change: opacity, transform;
+    /* Banner */
+    .banner{
+      background:#fff;border:1px solid var(--border-light);border-radius:18px;
+      padding:10px 12px;box-shadow:0 10px 22px rgba(15,23,42,.04);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px
+    }
+    .banner-left{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .banner-title{font-weight:950;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .banner-sub{font-size:.78rem;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .online-pill{
+      display:inline-flex;align-items:center;gap:8px;padding:4px 10px;border-radius:999px;
+      border:1px solid rgba(22,163,74,.35);background:rgba(22,163,74,.10);color:#166534;
+      font-size:.74rem;font-weight:950;white-space:nowrap
+    }
+    .offline-pill{border-color:rgba(220,38,38,.35);background:rgba(220,38,38,.10);color:#991b1b}
+    .slogan{
+      font-size:.74rem;font-weight:950;color:#111827;background:rgba(29,78,216,.08);
+      border:1px solid rgba(29,78,216,.18);padding:6px 12px;border-radius:999px;white-space:nowrap
     }
 
-    .aq-scale-title {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom: 8px;
-      font-weight: 900;
-      font-size: 0.86rem;
+    /* blinking light */
+    .blink-dot{
+      width:9px;height:9px;border-radius:999px;display:inline-block;
+      background:#16a34a;box-shadow:0 0 0 rgba(22,163,74,.55);
+      animation:pulse 1.4s infinite;
+    }
+    .blink-dot.off{
+      background:#dc2626;
+      box-shadow:0 0 0 rgba(220,38,38,.45);
+      animation:pulseRed 1.4s infinite;
+    }
+    @keyframes pulse{
+      0%{box-shadow:0 0 0 0 rgba(22,163,74,.55)}
+      70%{box-shadow:0 0 0 10px rgba(22,163,74,0)}
+      100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}
+    }
+    @keyframes pulseRed{
+      0%{box-shadow:0 0 0 0 rgba(220,38,38,.45)}
+      70%{box-shadow:0 0 0 10px rgba(220,38,38,0)}
+      100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}
     }
 
-    .aq-scale-title small {
-      font-weight: 700;
-      color: var(--text-muted);
-      font-size: 0.76rem;
+    /* Search + list */
+    .station-search{
+      width:100%;padding:10px 12px;border-radius:999px;border:1px solid var(--border-light);
+      font-size:.82rem;margin-bottom:8px;background:#fff;color:var(--text-main)
     }
+    .station-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+    .station-item{
+      background:var(--bg-card);border-radius:16px;padding:10px 10px;border:1px solid var(--border-light);
+      display:flex;justify-content:space-between;align-items:center;cursor:pointer;
+      transition:.15s ease;box-shadow:0 10px 22px rgba(15,23,42,.04)
+    }
+    .station-item:hover{box-shadow:0 14px 28px rgba(15,23,42,.07)}
+    .station-item.active{border-color:var(--accent-green);box-shadow:0 10px 22px rgba(22,163,74,.16)}
+    .station-name{font-size:.9rem;font-weight:950;display:flex;align-items:center;gap:8px;line-height:1.1}
+    .station-area{font-size:.78rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+    .station-status-pill{
+      border-radius:999px;padding:4px 9px;font-size:.72rem;background:#f3f4f6;color:var(--text-muted);
+      white-space:nowrap;border:1px solid var(--border-light);display:inline-flex;align-items:center;gap:6px;font-weight:900
+    }
+    .station-status-pill.good{background:rgba(22,163,74,.12);color:#166534;border-color:rgba(22,163,74,.35)}
+    .station-status-pill.moderate{background:rgba(234,179,8,.12);color:#854d0e;border-color:rgba(234,179,8,.35)}
+    .station-status-pill.unhealthy{background:rgba(249,115,22,.12);color:#9a3412;border-color:rgba(249,115,22,.35)}
+    .station-status-pill.veryunhealthy{background:rgba(239,68,68,.12);color:#7f1d1d;border-color:rgba(239,68,68,.35)}
+    .station-status-pill.hazardous{background:rgba(88,28,135,.12);color:#4a044e;border-color:rgba(126,34,206,.35)}
 
-    .aqi-bar {
-      position: relative;
-      height: 10px;
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid var(--border-light);
-      background: #e5e7eb;
+    /* Details area */
+    .details-wrap{display:none}
+    body.has-selection .details-wrap{display:block}
+    .empty-wrap{display:block}
+    body.has-selection .empty-wrap{display:none}
+    .empty-card{
+      background:#fff;border:1px dashed rgba(107,114,128,.35);border-radius:18px;padding:16px;
+      box-shadow:0 10px 22px rgba(15,23,42,.04);color:var(--text-muted)
     }
-    .aqi-bar .seg { height: 100%; float: left; }
-    .aqi-pointer {
-      position: absolute;
-      top: -7px;
-      width: 0;
-      height: 0;
-      border-left: 6px solid transparent;
-      border-right: 6px solid transparent;
-      border-bottom: 7px solid #111827;
-      transform: translateX(-50%);
-    }
+    .empty-card h6{margin:0 0 6px;font-weight:950;color:#111827;font-size:.95rem}
+    .empty-card .hint{font-size:.82rem;display:flex;gap:8px;align-items:flex-start}
+    .empty-card .hint i{margin-top:1px}
 
-    .aq-scale-row {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-top: 8px;
-      gap: 10px;
-      font-size: 0.78rem;
-      color: var(--text-muted);
+    /* Cards */
+    .cards-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px}
+    .card-custom{
+      background:var(--bg-card);border-radius:18px;padding:12px;border:1px solid var(--border-light);
+      box-shadow:0 10px 24px rgba(15,23,42,.05)
     }
-    .aq-scale-row strong { color: var(--text-main); }
+    .card-header-line{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+    .card-label{
+      font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;
+      display:flex;align-items:center;gap:8px;font-weight:900
+    }
+    .card-main{display:flex;align-items:baseline;gap:8px}
+    .card-value{font-size:1.55rem;font-weight:950}
+    .card-unit{font-size:.75rem;color:var(--text-muted)}
+    .card-note{font-size:.78rem;color:var(--text-muted);margin-top:6px}
+    .card-aq{background:linear-gradient(135deg,#ecfdf5,#eff6ff)}
+    .card-pm25{background:linear-gradient(135deg,#ecfdf5,#dcfce7)}
+    .card-pm10{background:linear-gradient(135deg,#eff6ff,#dbeafe)}
+    .card-thermo{background:linear-gradient(135deg,#fff7ed,#fef3c7)}
+    .card-station{background:linear-gradient(135deg,#f9fafb,#e5e7eb)}
 
-    /* Make leaflet attribution subtle */
-    .leaflet-control-attribution {
-      background: rgba(255,255,255,0.65) !important;
-      border-radius: 10px !important;
-      padding: 2px 8px !important;
-      margin: 6px !important;
+    /* AQ pill */
+    .aq-pill{padding:4px 9px;border-radius:999px;font-size:.78rem;display:inline-flex;align-items:center;gap:6px;margin-top:8px;border:1px solid transparent;font-weight:900}
+    .aq-good{background:rgba(22,163,74,.12);color:#166534;border-color:rgba(22,163,74,.5)}
+    .aq-moderate{background:rgba(234,179,8,.12);color:#854d0e;border-color:rgba(234,179,8,.5)}
+    .aq-unhealthy{background:rgba(249,115,22,.12);color:#9a3412;border-color:rgba(249,115,22,.6)}
+    .aq-veryunhealthy{background:rgba(239,68,68,.10);color:#7f1d1d;border-color:rgba(239,68,68,.6)}
+    .aq-hazardous{background:rgba(88,28,135,.12);color:#4a044e;border-color:rgba(126,34,206,.7)}
+
+    /* Activities */
+    .activities{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+    .act{
+      background:#fff;border:1px solid var(--border-light);border-radius:16px;padding:10px;
+      display:flex;gap:10px;align-items:flex-start;box-shadow:0 10px 22px rgba(15,23,42,.04)
+    }
+    .act i{font-size:1.15rem}
+    .act-title{font-weight:950;font-size:.86rem;margin:0}
+    .act-sub{margin:2px 0 0;font-size:.76rem;color:var(--text-muted)}
+
+    /* Controls */
+    .controls-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+    .select-small,.btn-small{border-radius:999px;border:1px solid var(--border-light);padding:6px 12px;font-size:.78rem;background:#fff}
+    .btn-small{
+      background:var(--accent-blue);border-color:var(--accent-blue);color:#fff;display:inline-flex;align-items:center;gap:6px;
+      box-shadow:0 10px 20px rgba(15,23,42,.08);transition:transform .15s ease, filter .15s ease
+    }
+    .btn-small:hover{filter:brightness(.95);transform:translateY(-1px)}
+    .btn-small:active{transform:translateY(0)}
+    .toggle-inline{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text-muted);font-weight:800}
+    .toggle-inline input{accent-color:var(--accent-green)}
+
+    .chart-wrapper{
+      position:relative;height:140px;background:#fff;border-radius:16px;border:1px solid var(--border-light);
+      padding:8px;box-shadow:0 10px 24px rgba(15,23,42,.04)
+    }
+    .chart-caption{font-size:.78rem;color:var(--text-muted);margin-bottom:6px}
+
+    /* AQ SCALE */
+    .aq-scale{
+      position:fixed;left:12px;bottom:14px;z-index:25;width:280px;max-width:calc(100vw - 24px);
+      background:rgba(255,255,255,.92);border:1px solid var(--border-light);border-radius:18px;
+      box-shadow:0 14px 34px rgba(15,23,42,.14);backdrop-filter:blur(10px);padding:12px 12px 10px;
+      transition:opacity .18s ease, transform .18s ease, visibility .18s ease;will-change:opacity,transform
+    }
+    .aq-scale-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-weight:950;font-size:.86rem}
+    .aq-scale-title small{font-weight:900;color:var(--text-muted);font-size:.76rem}
+    .aqi-bar{position:relative;height:10px;border-radius:999px;overflow:hidden;border:1px solid var(--border-light);background:#e5e7eb}
+    .aqi-bar .seg{height:100%;float:left}
+    .aqi-pointer{
+      position:absolute;top:-7px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;
+      border-bottom:7px solid #111827;transform:translateX(-50%)
+    }
+    .aq-scale-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:10px;font-size:.78rem;color:var(--text-muted)}
+    .aq-scale-row strong{color:var(--text-main)}
+
+    .leaflet-control-attribution{
+      background:rgba(255,255,255,.65)!important;border-radius:10px!important;padding:2px 8px!important;margin:6px!important
     }
 
     /* Modals */
-    .modal-content {
-      border-radius: 18px;
-      border: 1px solid var(--border-light);
-      box-shadow: 0 18px 45px rgba(15,23,42,0.18);
+    .modal-content{border-radius:18px;border:1px solid var(--border-light);box-shadow:0 18px 45px rgba(15,23,42,.18)}
+    .modal-header{border-bottom:1px solid var(--border-light)}
+    .modal-footer{border-top:1px solid var(--border-light)}
+    .small-help{font-size:.78rem;color:var(--text-muted)}
+    .history-table{border:1px solid var(--border-light);border-radius:14px;overflow:hidden;background:#fff}
+    .history-table thead th{font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);background:#f9fafb;border-bottom:1px solid var(--border-light)}
+    .history-table td{font-size:.82rem;color:var(--text-main)}
+
+    /* -------- Map popup mini panel (integrated details on click) -------- */
+    .station-pop{min-width:240px;max-width:280px}
+    .station-pop .pop-title{font-weight:950;font-size:.95rem;line-height:1.15;margin-bottom:6px}
+    .station-pop .pop-sub{font-size:.78rem;color:var(--text-muted);margin-bottom:8px}
+    .station-pop .pop-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .station-pop .pop-chip{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 10px;border-radius:999px;font-size:.78rem;font-weight:950;
+      border:1px solid rgba(229,231,235,.9);background:#fff;
+      box-shadow:0 8px 14px rgba(15,23,42,.06)
     }
-    .modal-header { border-bottom: 1px solid var(--border-light); }
-    .modal-footer { border-top: 1px solid var(--border-light); }
-    .small-help { font-size: .78rem; color: var(--text-muted); }
-    .history-table {
-      border: 1px solid var(--border-light);
-      border-radius: 14px;
-      overflow: hidden;
-      background: #fff;
+    .station-pop .pop-chip .muted{color:var(--text-muted);font-weight:900}
+    .pop-chip.good{border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.08);color:#166534}
+    .pop-chip.moderate{border-color:rgba(234,179,8,.35);background:rgba(234,179,8,.10);color:#854d0e}
+    .pop-chip.unhealthy{border-color:rgba(249,115,22,.35);background:rgba(249,115,22,.10);color:#9a3412}
+    .pop-chip.veryunhealthy{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#7f1d1d}
+    .pop-chip.hazardous{border-color:rgba(126,34,206,.35);background:rgba(126,34,206,.10);color:#4a044e}
+    .station-pop .pop-actions{display:flex;gap:8px;margin-top:8px}
+    .pop-btn{
+      border:1px solid var(--border-light);background:#111827;color:#fff;
+      padding:8px 10px;border-radius:999px;font-size:.78rem;font-weight:950;
+      display:inline-flex;align-items:center;gap:6px;cursor:pointer
     }
-    .history-table thead th {
-      font-size: .75rem;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      color: var(--text-muted);
-      background: #f9fafb;
-      border-bottom: 1px solid var(--border-light);
-    }
-    .history-table td { font-size: .82rem; color: var(--text-main); }
+    .pop-btn.secondary{background:#16a34a;border-color:#16a34a}
   </style>
 </head>
 
@@ -558,21 +307,22 @@
           <span id="dayNightIcon" class="ms-1"></span>
         </div>
         <div class="nav-sub">
-          <span id="navSub">Live · 1 station</span>
+          <span id="navSub">Live</span>
           <span id="aqMood"></span>
         </div>
       </div>
     </div>
 
-    <button id="navToggle" class="nav-toggle" aria-label="Toggle panel">
-      <i class="bi bi-layout-sidebar-inset"></i>
+    <!-- Hamburger ONLY controls panel -->
+    <button id="navToggle" class="nav-toggle" aria-label="Toggle panel" title="Menu">
+      <i id="navToggleIcon" class="bi bi-list"></i>
     </button>
   </div>
 
   <!-- Fullscreen map -->
   <div id="map"></div>
 
-  <!-- AQ scale bar overlay (left bottom) -->
+  <!-- AQ scale -->
   <div class="aq-scale" aria-label="Air quality scale">
     <div class="aq-scale-title">
       <div class="d-flex align-items-center gap-2">
@@ -597,166 +347,166 @@
     </div>
   </div>
 
-  <!-- Right expandable side panel -->
+  <!-- Side panel -->
   <div class="side-panel" id="sidePanel">
     <div class="panel-header">
       <div class="panel-header-title">
-        <i class="bi bi-diagram-3 text-primary"></i>
+        <i class="bi bi-grid-1x2-fill text-primary"></i>
         <span>Stations</span>
       </div>
-      <button class="panel-toggle" id="panelToggle" title="Collapse details">❯</button>
     </div>
 
     <div class="panel-body">
-      <!-- NEW: banner -->
+      <!-- Banner -->
       <div class="banner" aria-label="Station status banner">
         <div class="banner-left">
-          <div class="banner-title" id="bannerStationName">--</div>
+          <div class="banner-title" id="bannerStationName">No station selected</div>
           <div class="banner-sub">
-            <span id="onlinePill" class="online-pill">
-              <i class="bi bi-wifi"></i> Online
+            <span id="onlinePill" class="online-pill offline-pill">
+              <span class="blink-dot off"></span>
+              <i class="bi bi-wifi-off"></i> Offline
             </span>
             <span class="text-muted" id="bannerLastSeen">Last seen: --</span>
           </div>
         </div>
-        <div class="slogan" title="Slogan">Breathe clean air</div>
+        <div class="slogan">Breathe clean air</div>
       </div>
 
-      <!-- Station list -->
-      <div class="panel-section-title">Stations</div>
+      <!-- Search -->
+      <input
+        type="text"
+        id="stationSearch"
+        class="station-search"
+        placeholder="Search public… or enter private code"
+        autocomplete="off"
+      />
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="text-muted" style="font-size:.8rem" id="stationCountText">1 station</div>
+        <div class="text-muted" style="font-size:.8rem;font-weight:900" id="stationCountText">Type to search</div>
+        <button id="addPrivateBtn" class="btn btn-sm" style="border-radius:999px;border:1px solid var(--border-light);background:#fff;" title="Add private by code">
+          <i class="bi bi-lock-fill text-secondary"></i>
+        </button>
       </div>
 
-      <input type="text" id="stationSearch" class="station-search" placeholder="Search name or area..." />
+      <!-- Station list (EMPTY until user types) -->
       <div id="stationList" class="station-list"></div>
 
-      <!-- Selected station details -->
-      <div class="panel-section-title">Now</div>
-
-      <div class="cards-grid">
-        <div class="card-custom card-aq">
-          <div class="card-header-line">
-            <div class="card-label">
-              <i class="bi bi-shield-check text-success"></i>
-              <span>Status</span>
+      <!-- EMPTY STATE -->
+      <div class="empty-wrap">
+        <div class="empty-card">
+          <h6><i class="bi bi-search me-1"></i> Search a station</h6>
+          <div class="hint">
+            <i class="bi bi-stars text-primary"></i>
+            <div>
+              Type to find <strong>public</strong> stations.<br/>
+              For <strong>private</strong>, enter the code then tap <i class="bi bi-lock-fill"></i>.
             </div>
           </div>
-          <div class="card-main">
-            <div class="card-value" id="aqStatus">--</div>
-          </div>
-          <div class="card-note" id="aqMessage">Waiting for data…</div>
-          <div id="aqCategoryPill"></div>
-        </div>
-
-        <div class="card-custom card-thermo">
-          <div class="card-header-line">
-            <div class="card-label">
-              <i class="bi bi-thermometer-half text-warning"></i>
-              <span>Weather</span>
-            </div>
-          </div>
-          <div class="card-main">
-            <div class="card-value" id="temp">--</div>
-            <div class="card-unit">°C</div>
-          </div>
-          <div class="card-note">
-            Humidity: <span id="hum">--</span> %.
-          </div>
-        </div>
-
-        <div class="card-custom card-pm25">
-          <div class="card-header-line">
-            <div class="card-label">
-              <i class="bi bi-dot text-success"></i>
-              <span>PM2.5</span>
-            </div>
-          </div>
-          <div class="card-main">
-            <div class="card-value" id="pm25">--</div>
-            <div class="card-unit">µg/m³</div>
-          </div>
-          <div class="card-note">Fine particles.</div>
-        </div>
-
-        <div class="card-custom card-pm10">
-          <div class="card-header-line">
-            <div class="card-label">
-              <i class="bi bi-circle-half text-primary"></i>
-              <span>PM10</span>
-            </div>
-          </div>
-          <div class="card-main">
-            <div class="card-value" id="pm10">--</div>
-            <div class="card-unit">µg/m³</div>
-          </div>
-          <div class="card-note">Coarse particles.</div>
         </div>
       </div>
 
-      <div class="card-custom card-station">
-        <div class="card-header-line">
-          <div class="card-label">
-            <i class="bi bi-geo-alt text-secondary"></i>
-            <span>Station</span>
+      <!-- DETAILS (kept as before; removed repeating info-strip section) -->
+      <div class="details-wrap">
+        <div class="cards-grid">
+          <div class="card-custom card-aq">
+            <div class="card-header-line">
+              <div class="card-label"><i class="bi bi-shield-check text-success"></i><span>Status</span></div>
+            </div>
+            <div class="card-main">
+              <div class="card-value" id="aqStatus">--</div>
+            </div>
+            <div class="card-note" id="aqMessage">--</div>
+            <div id="aqCategoryPill"></div>
+          </div>
+
+          <div class="card-custom card-thermo">
+            <div class="card-header-line">
+              <div class="card-label"><i class="bi bi-thermometer-half text-warning"></i><span>Weather</span></div>
+            </div>
+            <div class="card-main">
+              <div class="card-value" id="temp">--</div>
+              <div class="card-unit">°C</div>
+            </div>
+            <div class="card-note">RH: <span id="hum">--</span>%</div>
+          </div>
+
+          <div class="card-custom card-pm25">
+            <div class="card-header-line">
+              <div class="card-label"><i class="bi bi-dot text-success"></i><span>PM2.5</span></div>
+            </div>
+            <div class="card-main">
+              <div class="card-value" id="pm25">--</div>
+              <div class="card-unit">µg/m³</div>
+            </div>
+          </div>
+
+          <div class="card-custom card-pm10">
+            <div class="card-header-line">
+              <div class="card-label"><i class="bi bi-circle-half text-primary"></i><span>PM10</span></div>
+            </div>
+            <div class="card-main">
+              <div class="card-value" id="pm10">--</div>
+              <div class="card-unit">µg/m³</div>
+            </div>
           </div>
         </div>
-        <div class="card-note" id="stationAreaText">--</div>
-      </div>
 
-      <!-- Activities -->
-      <div class="panel-section-title">Suggested activities</div>
-      <div id="activities" class="activities"></div>
+        <div class="card-custom card-station mb-2">
+          <div class="card-header-line">
+            <div class="card-label"><i class="bi bi-geo-alt text-secondary"></i><span>Location</span></div>
+            <div id="privacyBadge" class="station-status-pill"><i class="bi bi-unlock"></i> Public</div>
+          </div>
+          <div class="card-note" id="stationAreaText">--</div>
+        </div>
 
-      <!-- Trends -->
-      <div class="panel-section-title mt-3">PM trends (µg/m³)</div>
-      <div class="controls-row">
-        <select id="rangeSelect" class="select-small">
-          <option value="1">Last hour</option>
-          <option value="6">Last 6 h</option>
-          <option value="24" selected>Last 24 h</option>
-        </select>
+        <div class="activities" id="activities"></div>
 
-        <label class="toggle-inline">
-          <input type="checkbox" id="showPm10" checked />
-          PM10
-        </label>
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+          <div class="card-label m-0"><i class="bi bi-graph-up-arrow text-primary"></i><span>Trends</span></div>
+          <div class="small-help">µg/m³</div>
+        </div>
 
-        <label class="toggle-inline">
-          <input type="checkbox" id="autoRefresh" checked />
-          Auto
-        </label>
+        <div class="controls-row">
+          <select id="rangeSelect" class="select-small" title="Range">
+            <option value="1">1h</option>
+            <option value="6">6h</option>
+            <option value="24" selected>24h</option>
+          </select>
 
-        <button id="refreshBtn" class="btn-small">
-          <i class="bi bi-arrow-repeat"></i>
-          Refresh
-        </button>
+          <label class="toggle-inline" title="Show PM10">
+            <input type="checkbox" id="showPm10" checked />
+            PM10
+          </label>
 
-        <!-- Password-protected view/download -->
-        <button id="historyBtn" class="btn-small" style="background:#111827;border-color:#111827;">
-          <i class="bi bi-clock-history"></i>
-          History
-        </button>
+          <label class="toggle-inline" title="Auto refresh">
+            <input type="checkbox" id="autoRefresh" checked />
+            Auto
+          </label>
 
-        <button id="downloadCsvBtn" class="btn-small" style="background:#16a34a;border-color:#16a34a;">
-          <i class="bi bi-download"></i>
-          CSV
-        </button>
+          <button id="refreshBtn" class="btn-small" title="Refresh">
+            <i class="bi bi-arrow-repeat"></i>
+          </button>
 
-        <!-- Cache control -->
-        <button id="clearCacheBtn" class="btn-small" style="background:#6b7280;border-color:#6b7280;">
-          <i class="bi bi-trash3"></i>
-          Clear cache
-        </button>
-      </div>
+          <button id="historyBtn" class="btn-small" style="background:#111827;border-color:#111827;" title="History (password)">
+            <i class="bi bi-clock-history"></i>
+          </button>
 
-      <div class="chart-caption" id="chartSubtitle">Loading data…</div>
-      <div class="chart-wrapper">
-        <canvas id="pmChart"></canvas>
-      </div>
+          <button id="downloadCsvBtn" class="btn-small" style="background:#16a34a;border-color:#16a34a;" title="CSV (password)">
+            <i class="bi bi-download"></i>
+          </button>
 
-      <div class="small-help mt-2">
-        Tip: <strong>History</strong> and <strong>CSV</strong> are password-protected. Units: µg/m³.
+          <button id="clearCacheBtn" class="btn-small" style="background:#6b7280;border-color:#6b7280;" title="Clear cache">
+            <i class="bi bi-trash3"></i>
+          </button>
+        </div>
+
+        <div class="chart-caption" id="chartSubtitle">--</div>
+        <div class="chart-wrapper">
+          <canvas id="pmChart"></canvas>
+        </div>
+
+        <div class="small-help mt-2">
+          <i class="bi bi-shield-lock"></i> History & CSV require password.
+        </div>
       </div>
     </div>
 
@@ -844,36 +594,34 @@
     const SCRIPT_URL_CLANERT =
       "https://script.google.com/macros/s/AKfycbwD21CyF2Gli6Y6hDPUyds2fzAw7mrJ0NSDrqeiG7yItbZcYL-cbKsLcbHOU7db32wN/exec";
 
+    // Public stations are searchable. Private stations are NOT shown unless user adds by code.
     const stations = [
       {
         id: "clanert-makabe",
         stationId: "CLANERT-MAKABE-001",
         name: "ClanertAir – Mbezi Makabe",
         area: "Mbezi Makabe, Dar es Salaam",
+        owner: "ClanertAir",
         lat: -6.7432882,
         lng: 39.1044879,
         dataUrl: SCRIPT_URL_CLANERT,
-        aqLabel: null
+        aqLabel: null,
+        visibility: "public" // public | private
       }
     ];
 
-    // -------------------- DOWNLOAD PASSWORD --------------------
+    // -------------------- PASSWORD --------------------
     // NOTE: Client-side only (visible in source). For real security, enforce on server too.
     const DOWNLOAD_PASSWORD = "Clanert360@";
 
     // -------------------- CACHE (localStorage) --------------------
     const CACHE_NS = "clanertair_cache_v1";
-    const CACHE_TTL_LATEST_MS = 30 * 1000;      // 30s
-    const CACHE_TTL_HISTORY_MS = 5 * 60 * 1000; // 5min
+    const CACHE_TTL_LATEST_MS = 30 * 1000;
+    const CACHE_TTL_HISTORY_MS = 5 * 60 * 1000;
 
-    function cacheKey(type, stationId, extra) {
-      return `${CACHE_NS}:${type}:${stationId}:${extra || ""}`;
-    }
+    function cacheKey(type, stationId, extra) { return `${CACHE_NS}:${type}:${stationId}:${extra || ""}`; }
     function cacheSet(key, payload) {
-      try {
-        const v = { t: Date.now(), payload };
-        localStorage.setItem(key, JSON.stringify(v));
-      } catch {}
+      try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), payload })); } catch {}
     }
     function cacheGet(key, ttlMs) {
       try {
@@ -883,9 +631,7 @@
         if (!v || typeof v.t !== "number") return null;
         if (Date.now() - v.t > ttlMs) return null;
         return v.payload;
-      } catch {
-        return null;
-      }
+      } catch { return null; }
     }
     function cacheClearAll() {
       try {
@@ -900,14 +646,17 @@
 
     // -------------------- DOM --------------------
     const sidePanel = document.getElementById("sidePanel");
-    const panelToggle = document.getElementById("panelToggle");
     const navToggle = document.getElementById("navToggle");
-    const navSubEl = document.getElementById("navSub");
+    const navToggleIcon = document.getElementById("navToggleIcon");
 
+    const navSubEl = document.getElementById("navSub");
     const stationCountTextEl = document.getElementById("stationCountText");
     const stationListEl = document.getElementById("stationList");
     const stationSearchEl = document.getElementById("stationSearch");
+    const addPrivateBtn = document.getElementById("addPrivateBtn");
+
     const stationAreaTextEl = document.getElementById("stationAreaText");
+    const privacyBadgeEl = document.getElementById("privacyBadge");
 
     const pm25El = document.getElementById("pm25");
     const pm10El = document.getElementById("pm10");
@@ -925,19 +674,16 @@
     const chartSubtitleEl = document.getElementById("chartSubtitle");
     const timestampTextEl = document.getElementById("timestampText");
     const statusTextEl = document.getElementById("statusText");
-
     const activitiesEl = document.getElementById("activities");
 
     const dayNightIconEl = document.getElementById("dayNightIcon");
     const aqMoodEl = document.getElementById("aqMood");
 
-    // AQ scale overlay DOM
     const aqiPointerEl = document.getElementById("aqiPointer");
     const aqScaleMiniEl = document.getElementById("aqScaleMini");
     const aqScaleLabelEl = document.getElementById("aqScaleLabel");
     const aqScaleHintEl = document.getElementById("aqScaleHint");
 
-    // Banner DOM
     const bannerStationNameEl = document.getElementById("bannerStationName");
     const onlinePillEl = document.getElementById("onlinePill");
     const bannerLastSeenEl = document.getElementById("bannerLastSeen");
@@ -946,6 +692,7 @@
     const historyBtn = document.getElementById("historyBtn");
     const downloadCsvBtn = document.getElementById("downloadCsvBtn");
     const clearCacheBtn = document.getElementById("clearCacheBtn");
+
     const historyModalEl = document.getElementById("historyModal");
     const historyTbodyEl = document.getElementById("historyTbody");
     const historyMetaEl = document.getElementById("historyMeta");
@@ -964,11 +711,10 @@
     let markers = {};
     let pmChart = null;
     let autoRefreshTimer = null;
-    let currentStation = stations[0];
 
+    // start with NO selection
+    let currentStation = null;
     let lastHistory = null;
-
-    // after password, do one of: "view_history" | "download_csv"
     let pendingAction = null;
 
     // -------------------- DAY/NIGHT --------------------
@@ -983,128 +729,69 @@
     // -------------------- AQ LOGIC --------------------
     function classifyAirQuality(pm25) {
       if (pm25 == null || isNaN(pm25)) {
-        return {
-          label: "Unknown",
-          message: "No recent data.",
-          className: "aq-pill",
-          stationStatusClass: "",
-          moodIcon: `<i class="bi bi-emoji-expressionless"></i>`
-        };
+        return { label:"Unknown", message:"No data.", className:"aq-pill", moodIcon:`<i class="bi bi-emoji-expressionless"></i>` };
       }
-      if (pm25 <= 12) {
-        return {
-          label: "Good",
-          message: "Air is clean. Great for outdoor activity.",
-          className: "aq-pill aq-good",
-          stationStatusClass: "good",
-          moodIcon: `<i class="bi bi-emoji-smile-fill text-success"></i>`
-        };
-      } else if (pm25 <= 35.4) {
-        return {
-          label: "Moderate",
-          message: "OK for most people. Sensitive groups take care.",
-          className: "aq-pill aq-moderate",
-          stationStatusClass: "moderate",
-          moodIcon: `<i class="bi bi-emoji-neutral-fill text-warning"></i>`
-        };
-      } else if (pm25 <= 55.4) {
-        return {
-          label: "Unhealthy for sensitive",
-          message: "Sensitive groups: limit time outdoors.",
-          className: "aq-pill aq-unhealthy",
-          stationStatusClass: "unhealthy",
-          moodIcon: `<i class="bi bi-emoji-frown-fill text-warning"></i>`
-        };
-      } else if (pm25 <= 150.4) {
-        return {
-          label: "Unhealthy",
-          message: "Limit outdoor activity. Prefer indoor exercise.",
-          className: "aq-pill aq-veryunhealthy",
-          stationStatusClass: "veryunhealthy",
-          moodIcon: `<i class="bi bi-emoji-dizzy-fill text-danger"></i>`
-        };
-      } else if (pm25 <= 250.4) {
-        return {
-          label: "Very unhealthy",
-          message: "Avoid outdoor air if possible.",
-          className: "aq-pill aq-veryunhealthy",
-          stationStatusClass: "veryunhealthy",
-          moodIcon: `<i class="bi bi-lungs-fill text-danger"></i>`
-        };
-      } else {
-        return {
-          label: "Hazardous",
-          message: "Stay indoors. Reduce exposure.",
-          className: "aq-pill aq-hazardous",
-          stationStatusClass: "hazardous",
-          moodIcon: `<i class="bi bi-skull-fill" style="color:#6b21a8"></i>`
-        };
-      }
+      if (pm25 <= 12)   return { label:"Good", message:"Clean air.", className:"aq-pill aq-good", moodIcon:`<i class="bi bi-emoji-smile-fill text-success"></i>` };
+      if (pm25 <= 35.4) return { label:"Moderate", message:"OK for most.", className:"aq-pill aq-moderate", moodIcon:`<i class="bi bi-emoji-neutral-fill text-warning"></i>` };
+      if (pm25 <= 55.4) return { label:"Sensitive", message:"Limit heavy activity.", className:"aq-pill aq-unhealthy", moodIcon:`<i class="bi bi-emoji-frown-fill text-warning"></i>` };
+      if (pm25 <= 150.4)return { label:"Unhealthy", message:"Reduce outdoor time.", className:"aq-pill aq-veryunhealthy", moodIcon:`<i class="bi bi-emoji-dizzy-fill text-danger"></i>` };
+      if (pm25 <= 250.4)return { label:"Very Unhealthy", message:"Avoid outdoors.", className:"aq-pill aq-veryunhealthy", moodIcon:`<i class="bi bi-lungs-fill text-danger"></i>` };
+      return { label:"Hazardous", message:"Stay indoors.", className:"aq-pill aq-hazardous", moodIcon:`<i class="bi bi-skull-fill" style="color:#6b21a8"></i>` };
     }
 
     function setAqiPointerFromPm25(pm25) {
-      if (pm25 == null || isNaN(pm25)) {
-        aqiPointerEl.style.left = "0%";
-        return;
-      }
+      if (pm25 == null || isNaN(pm25)) { aqiPointerEl.style.left = "0%"; return; }
       const clamped = Math.max(0, Math.min(pm25, 250));
-      const pct = (clamped / 250) * 100;
-      aqiPointerEl.style.left = pct + "%";
+      aqiPointerEl.style.left = ((clamped / 250) * 100) + "%";
     }
 
     function getMarkerColors(label) {
       switch (label) {
         case "Good": return { color: "#16a34a", fillColor: "#22c55e" };
         case "Moderate": return { color: "#eab308", fillColor: "#facc15" };
-        case "Unhealthy for sensitive": return { color: "#f97316", fillColor: "#fb923c" };
+        case "Sensitive": return { color: "#f97316", fillColor: "#fb923c" };
         case "Unhealthy": return { color: "#ef4444", fillColor: "#f87171" };
-        case "Very unhealthy": return { color: "#b91c1c", fillColor: "#f97373" };
+        case "Very Unhealthy": return { color: "#b91c1c", fillColor: "#f97373" };
         case "Hazardous": return { color: "#6b21a8", fillColor: "#a855f7" };
         default: return { color: "#6b7280", fillColor: "#9ca3af" };
       }
     }
 
-    // -------------------- ACTIVITIES --------------------
+    // -------------------- ACTIVITIES (short) --------------------
     function activitiesFor(label) {
       if (label === "Good") return [
-        { icon:"bi-person-running", title:"Running / Jogging", sub:"Best time for outdoor cardio." },
-        { icon:"bi-bicycle", title:"Cycling / Cruising", sub:"Enjoy longer rides outside." },
-        { icon:"bi-tree", title:"Outdoor exercise", sub:"Park workouts are recommended." },
-        { icon:"bi-wind", title:"Ventilation", sub:"Open windows for fresh air." },
+        { icon:"bi-person-running", title:"Run", sub:"Best time." },
+        { icon:"bi-bicycle", title:"Ride", sub:"Go longer." },
+        { icon:"bi-tree", title:"Outdoor", sub:"Enjoy." },
+        { icon:"bi-wind", title:"Ventilate", sub:"Fresh air." },
       ];
       if (label === "Moderate") return [
-        { icon:"bi-person-walking", title:"Light walk", sub:"Good for most people." },
-        { icon:"bi-bicycle", title:"Short cycling", sub:"Keep it moderate intensity." },
-        { icon:"bi-heart-pulse", title:"Workout (short)", sub:"Prefer mid-intensity." },
-        { icon:"bi-wind", title:"Ventilate smart", sub:"Ventilate when traffic is low." },
+        { icon:"bi-person-walking", title:"Walk", sub:"Easy pace." },
+        { icon:"bi-bicycle", title:"Ride", sub:"Short." },
+        { icon:"bi-heart-pulse", title:"Workout", sub:"Medium." },
+        { icon:"bi-wind", title:"Ventilate", sub:"Low traffic." },
       ];
-      if (label.includes("sensitive")) return [
-        { icon:"bi-house-door", title:"Indoor workout", sub:"Safer for sensitive groups." },
-        { icon:"bi-person-walking", title:"Short walk", sub:"Avoid heavy exertion." },
-        { icon:"bi-mask", title:"Mask outdoors", sub:"Consider a well-fitting mask." },
-        { icon:"bi-fan", title:"Ventilation caution", sub:"Ventilate briefly if needed." },
+      if (label === "Sensitive") return [
+        { icon:"bi-house-door", title:"Indoor", sub:"Safer." },
+        { icon:"bi-mask", title:"Mask", sub:"If outside." },
+        { icon:"bi-person-walking", title:"Short walk", sub:"Light." },
+        { icon:"bi-fan", title:"Ventilate", sub:"Brief." },
       ];
-      if (label === "Unhealthy") return [
-        { icon:"bi-house-door", title:"Stay indoors", sub:"Avoid outdoor running/exercise." },
-        { icon:"bi-heart-pulse", title:"Indoor exercise", sub:"Short + low intensity." },
-        { icon:"bi-mask", title:"Mask if outside", sub:"Reduce exposure as much as possible." },
-        { icon:"bi-shield-check", title:"Air cleaning", sub:"Close windows / purifier if possible." },
-      ];
-      if (label === "Very unhealthy") return [
-        { icon:"bi-house-lock", title:"Avoid outdoors", sub:"Health risk for everyone." },
-        { icon:"bi-shield-check", title:"Close windows", sub:"Keep indoor air cleaner." },
-        { icon:"bi-fan", title:"Ventilation caution", sub:"Ventilate only if air improves." },
-        { icon:"bi-activity", title:"Rest / light indoor", sub:"Avoid intense activity." },
+      if (label === "Unhealthy" || label === "Very Unhealthy") return [
+        { icon:"bi-house-lock", title:"Indoors", sub:"Avoid outdoor." },
+        { icon:"bi-shield-check", title:"Close", sub:"Reduce dust." },
+        { icon:"bi-heart-pulse", title:"Light", sub:"Low effort." },
+        { icon:"bi-mask", title:"Mask", sub:"If needed." },
       ];
       if (label === "Hazardous") return [
-        { icon:"bi-house-lock-fill", title:"Stay inside", sub:"Avoid outdoor exposure." },
-        { icon:"bi-shield-fill-check", title:"Seal indoor air", sub:"Windows closed, purifier if possible." },
-        { icon:"bi-telephone", title:"Health caution", sub:"If symptoms: seek medical advice." },
-        { icon:"bi-x-octagon", title:"No outdoor activity", sub:"Running/cycling not recommended." },
+        { icon:"bi-house-lock-fill", title:"Stay in", sub:"High risk." },
+        { icon:"bi-shield-fill-check", title:"Seal", sub:"Cleaner." },
+        { icon:"bi-x-octagon", title:"No outdoor", sub:"Avoid." },
+        { icon:"bi-telephone", title:"Care", sub:"If symptoms." },
       ];
       return [
-        { icon:"bi-question-circle", title:"No data", sub:"Waiting for sensor updates." },
-        { icon:"bi-arrow-repeat", title:"Refresh", sub:"Try again in a moment." }
+        { icon:"bi-question-circle", title:"No data", sub:"Wait." },
+        { icon:"bi-arrow-repeat", title:"Refresh", sub:"Try again." }
       ];
     }
 
@@ -1156,7 +843,119 @@
       return data;
     }
 
-    // -------------------- UI UPDATE --------------------
+    // -------------------- UI HELPERS --------------------
+    function formatTimestampFull(ts) {
+      if (!ts) return "--";
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return String(ts);
+      return d.toLocaleString();
+    }
+    function formatTimestampShort(ts) {
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return "";
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+    function isStationOnline(ts) {
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return false;
+      const diff = Date.now() - d.getTime();
+      return diff >= 0 && diff <= (10 * 60 * 1000);
+    }
+
+    function setSelectionUI(selected) {
+      document.body.classList.toggle("has-selection", !!selected);
+      if (!selected) {
+        bannerStationNameEl.textContent = "No station selected";
+        bannerLastSeenEl.textContent = "Last seen: --";
+        onlinePillEl.className = "online-pill offline-pill";
+        onlinePillEl.innerHTML = `<span class="blink-dot off"></span> <i class="bi bi-wifi-off"></i> Offline`;
+        timestampTextEl.innerHTML = `<i class="bi bi-clock"></i> <span>Last update: --</span>`;
+        aqMoodEl.innerHTML = "";
+        aqScaleMiniEl.textContent = "PM2.5: -- µg/m³";
+        aqScaleLabelEl.textContent = "--";
+        aqScaleHintEl.innerHTML = `<i class="bi bi-info-circle"></i> Waiting…`;
+        setAqiPointerFromPm25(null);
+      }
+    }
+
+    // -------- Map popup (integrated repeating section) --------
+    function pillClassForAQ(label) {
+      const s = (label || "").toLowerCase();
+      if (s.includes("good")) return "good";
+      if (s.includes("moderate")) return "moderate";
+      if (s.includes("sensitive")) return "unhealthy";
+      if (s.includes("very")) return "veryunhealthy";
+      if (s.includes("hazard")) return "hazardous";
+      if (s.includes("unhealthy")) return "unhealthy";
+      return "";
+    }
+
+    function buildPopupHTML(station, latest, aqInfo) {
+      const pm25 = parseFloat(latest.pm25);
+      const pm10 = parseFloat(latest.pm10);
+      const temp = parseFloat(latest.temperature);
+      const hum  = parseFloat(latest.humidity);
+
+      const priv = station.visibility === "private"
+        ? `<span class="pop-chip"><i class="bi bi-lock-fill"></i> <span class="muted">Private</span></span>`
+        : `<span class="pop-chip"><i class="bi bi-unlock"></i> <span class="muted">Public</span></span>`;
+
+      const owner = station.owner ? `<span class="pop-chip"><i class="bi bi-person-badge"></i> <span class="muted">${station.owner}</span></span>` : "";
+
+      const aqPill = `<span class="pop-chip ${pillClassForAQ(aqInfo.label)}"><i class="bi bi-activity"></i> ${aqInfo.label}</span>`;
+
+      const p25 = isNaN(pm25) ? "--" : pm25.toFixed(1);
+      const p10 = isNaN(pm10) ? "--" : pm10.toFixed(1);
+      const t = isNaN(temp) ? "--" : temp.toFixed(1);
+      const h = isNaN(hum) ? "--" : hum.toFixed(0);
+
+      return `
+        <div class="station-pop">
+          <div class="pop-title">${station.name}</div>
+          <div class="pop-sub"><i class="bi bi-geo-alt"></i> ${station.area || station.stationId}</div>
+
+          <div class="pop-row">
+            ${aqPill}
+            ${priv}
+            ${owner}
+          </div>
+
+          <div class="pop-row">
+            <span class="pop-chip"><i class="bi bi-dot"></i> PM2.5: <span class="muted">${p25} µg/m³</span></span>
+            <span class="pop-chip"><i class="bi bi-circle-half"></i> PM10: <span class="muted">${p10} µg/m³</span></span>
+          </div>
+
+          <div class="pop-row">
+            <span class="pop-chip"><i class="bi bi-thermometer-half"></i> ${t} °C</span>
+            <span class="pop-chip"><i class="bi bi-droplet"></i> ${h} %</span>
+          </div>
+
+          <div class="pop-sub"><i class="bi bi-clock"></i> ${formatTimestampFull(latest.timestamp)}</div>
+
+          <div class="pop-actions">
+            <button class="pop-btn" onclick="window.__openHistoryFromPopup()">
+              <i class="bi bi-clock-history"></i> History
+            </button>
+            <button class="pop-btn secondary" onclick="window.__downloadCsvFromPopup()">
+              <i class="bi bi-download"></i> CSV
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------- UPDATE UI FROM DATA --------------------
+    function updateMarkerForStation(station, latest, aqInfo) {
+      const marker = markers[station.id];
+      if (!marker) return;
+
+      const colors = getMarkerColors(aqInfo.label);
+      marker.setStyle({ color: colors.color, fillColor: colors.fillColor });
+
+      // bind integrated popup (replaces repeating section)
+      marker.bindPopup(buildPopupHTML(station, latest, aqInfo), { closeButton: true, autoPan: true });
+    }
+
     function updateCardsFromLatest(station, latest) {
       const pm25 = parseFloat(latest.pm25);
       const pm10 = parseFloat(latest.pm10);
@@ -1171,33 +970,40 @@
       const aqInfo = classifyAirQuality(pm25);
       station.aqLabel = aqInfo.label;
 
+      // mood + overlay
       aqMoodEl.innerHTML = aqInfo.moodIcon;
-
-      // Simple overlay labels (µg/m³ everywhere)
       aqScaleMiniEl.textContent = "PM2.5: " + (isNaN(pm25) ? "--" : pm25.toFixed(1)) + " µg/m³";
       aqScaleLabelEl.textContent = aqInfo.label;
       aqScaleHintEl.innerHTML = `<i class="bi bi-info-circle"></i> ${aqInfo.message}`;
-
       setAqiPointerFromPm25(pm25);
 
-      // Banner updates
+      // Banner
       bannerStationNameEl.textContent = station.name;
       const lastSeen = formatTimestampFull(latest.timestamp);
       bannerLastSeenEl.textContent = "Last seen: " + lastSeen;
 
-      const isOnline = isStationOnline(latest.timestamp);
-      onlinePillEl.className = "online-pill" + (isOnline ? "" : " offline-pill");
-      onlinePillEl.innerHTML = isOnline
-        ? `<i class="bi bi-wifi"></i> Online`
-        : `<i class="bi bi-wifi-off"></i> Offline`;
+      const online = isStationOnline(latest.timestamp);
+
+      onlinePillEl.className = "online-pill" + (online ? "" : " offline-pill");
+      onlinePillEl.innerHTML = online
+        ? `<span class="blink-dot"></span> <i class="bi bi-wifi"></i> Online`
+        : `<span class="blink-dot off"></span> <i class="bi bi-wifi-off"></i> Offline`;
+
+      // Privacy badge
+      if (station.visibility === "private") {
+        privacyBadgeEl.className = "station-status-pill";
+        privacyBadgeEl.innerHTML = `<i class="bi bi-lock-fill"></i> Private`;
+      } else {
+        privacyBadgeEl.className = "station-status-pill";
+        privacyBadgeEl.innerHTML = `<i class="bi bi-unlock"></i> Public`;
+      }
 
       // Cards
       aqStatusEl.textContent = aqInfo.label;
       aqMessageEl.textContent = aqInfo.message;
       aqCategoryPillEl.innerHTML =
         `<span class="${aqInfo.className}">
-          <i class="bi bi-circle-fill"></i>
-          ${aqInfo.label}
+          <i class="bi bi-circle-fill"></i> ${aqInfo.label}
         </span>`;
 
       renderActivities(aqInfo.label);
@@ -1205,38 +1011,10 @@
       timestampTextEl.innerHTML =
         `<i class="bi bi-clock"></i> <span>Last update: ${lastSeen}</span>`;
 
-      stationAreaTextEl.textContent = station.area;
+      stationAreaTextEl.textContent = station.area || "--";
 
-      updateMarkerForStation(station, pm25, pm10, temp, hum, aqInfo);
-      renderStationList(stationSearchEl.value);
-    }
-
-    function isStationOnline(ts) {
-      // consider online if latest timestamp within last 10 minutes
-      const d = new Date(ts);
-      if (isNaN(d.getTime())) return false;
-      const diff = Date.now() - d.getTime();
-      return diff >= 0 && diff <= (10 * 60 * 1000);
-    }
-
-    function updateMarkerForStation(station, pm25, pm10, temp, hum, aqInfo) {
-      const marker = markers[station.id];
-      if (!marker) return;
-
-      const colors = getMarkerColors(aqInfo.label);
-      marker.setStyle({ color: colors.color, fillColor: colors.fillColor });
-
-      const pieces = [];
-      if (!isNaN(pm25)) pieces.push(`PM2.5: ${pm25.toFixed(1)} µg/m³`);
-      if (!isNaN(pm10)) pieces.push(`PM10: ${pm10.toFixed(1)} µg/m³`);
-      if (!isNaN(temp)) pieces.push(`Temp: ${temp.toFixed(1)} °C`);
-      if (!isNaN(hum)) pieces.push(`Humidity: ${hum.toFixed(0)} %`);
-
-      marker.bindPopup(`
-        <strong>${station.name}</strong><br>
-        Status: ${aqInfo.label}<br>
-        ${pieces.join(" · ")}
-      `);
+      // Map popup integration
+      updateMarkerForStation(station, latest, aqInfo);
     }
 
     function computeNiceMax(values) {
@@ -1244,8 +1022,7 @@
       if (!nums.length) return 50;
       const max = Math.max(...nums);
       const base = Math.max(max, 5);
-      const headroom = base * 0.15;
-      const raw = base + headroom;
+      const raw = base + base * 0.15;
       const step = raw <= 50 ? 5 : raw <= 100 ? 10 : raw <= 200 ? 20 : 50;
       return Math.ceil(raw / step) * step;
     }
@@ -1265,9 +1042,7 @@
 
       points.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-      chartSubtitleEl.textContent = points.length
-        ? `${points.length} points · last ${hours} h`
-        : "No data in this range.";
+      chartSubtitleEl.textContent = points.length ? `${points.length} pts · ${hours}h` : "No data.";
 
       const labels = points.map(p => formatTimestampShort(p.timestamp));
       const pm25Data = points.map(p => {
@@ -1329,10 +1104,7 @@
             }
           },
           scales: {
-            x: {
-              ticks: { color: "#6b7280", maxTicksLimit: 7 },
-              grid: { color: "#e5e7eb" }
-            },
+            x: { ticks: { color: "#6b7280", maxTicksLimit: 7 }, grid: { color: "#e5e7eb" } },
             y: {
               ticks: { color: "#6b7280" },
               grid: { color: "#e5e7eb" },
@@ -1345,46 +1117,44 @@
       });
     }
 
-    function formatTimestampFull(ts) {
-      if (!ts) return "--";
-      const d = new Date(ts);
-      if (isNaN(d.getTime())) return String(ts);
-      return d.toLocaleString();
-    }
+    // -------------------- STATIONS: SEARCH + PRIVATE CODE ADD --------------------
+    function normalize(s) { return (s || "").trim().toLowerCase(); }
 
-    function formatTimestampShort(ts) {
-      const d = new Date(ts);
-      if (isNaN(d.getTime())) return "";
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    }
-
-    // -------------------- STATION LIST --------------------
     function renderStationList(filterText) {
-      const q = (filterText || "").trim().toLowerCase();
+      const q = normalize(filterText);
 
-      const visible = q
-        ? stations.filter(s => s.name.toLowerCase().includes(q) || s.area.toLowerCase().includes(q))
-        : stations;
+      if (!q) {
+        stationCountTextEl.textContent = "Type to search";
+        stationListEl.innerHTML = "";
+        navSubEl.textContent = "Live";
+        return;
+      }
 
-      stationCountTextEl.textContent = visible.length === 1 ? "1 station" : `${visible.length} stations`;
+      const visible = stations.filter(s => {
+        const hay = `${s.name} ${s.area} ${s.stationId}`.toLowerCase();
+        return hay.includes(q);
+      });
 
-      navSubEl.textContent =
-        "Live · " + (stations.length === 1 ? "1 station" : `${stations.length} stations`);
+      stationCountTextEl.textContent = visible.length ? `${visible.length} found` : "No match";
+      navSubEl.textContent = "Live · " + (currentStation ? "1 selected" : "none");
 
       stationListEl.innerHTML = "";
       visible.forEach(st => {
         const div = document.createElement("div");
-        div.className = "station-item" + (st.id === currentStation.id ? " active" : "");
+        div.className = "station-item" + (currentStation && st.id === currentStation.id ? " active" : "");
 
-        const main = document.createElement("div");
-        main.className = "station-main";
-        main.innerHTML = `
-          <div class="station-name"><i class="bi bi-broadcast-pin text-primary"></i> ${st.name}</div>
-          <div class="station-area">${st.area}</div>
+        const left = document.createElement("div");
+        left.innerHTML = `
+          <div class="station-name">
+            <i class="bi ${st.visibility === "private" ? "bi-lock-fill text-secondary" : "bi-broadcast-pin text-primary"}"></i>
+            ${st.name}
+          </div>
+          <div class="station-area">${st.area || st.stationId}</div>
         `;
 
         const status = document.createElement("div");
         status.className = "station-status-pill";
+
         if (st.aqLabel) {
           const labelLower = st.aqLabel.toLowerCase();
           if (labelLower.includes("good")) status.classList.add("good");
@@ -1393,14 +1163,13 @@
           else if (labelLower.includes("very")) status.classList.add("veryunhealthy");
           else if (labelLower.includes("hazardous")) status.classList.add("hazardous");
           else if (labelLower.includes("unhealthy")) status.classList.add("unhealthy");
-          status.textContent = st.aqLabel;
+          status.innerHTML = `${st.visibility === "private" ? `<i class="bi bi-lock-fill"></i>` : `<i class="bi bi-unlock"></i>`} ${st.aqLabel}`;
         } else {
-          status.textContent = "No data";
+          status.innerHTML = `${st.visibility === "private" ? `<i class="bi bi-lock-fill"></i>` : `<i class="bi bi-unlock"></i>`} --`;
         }
 
-        div.appendChild(main);
+        div.appendChild(left);
         div.appendChild(status);
-
         div.addEventListener("click", () => selectStationById(st.id));
         stationListEl.appendChild(div);
       });
@@ -1409,9 +1178,45 @@
         const empty = document.createElement("div");
         empty.className = "text-muted";
         empty.style.fontSize = ".82rem";
-        empty.textContent = "No stations match your search.";
+        empty.innerHTML = `<i class="bi bi-info-circle"></i> Not found. For private, enter code then tap the lock.`;
         stationListEl.appendChild(empty);
       }
+    }
+
+    function addPrivateStationFromCode(code) {
+      const stationId = (code || "").trim();
+      if (!stationId) return;
+
+      const exists = stations.find(s => s.stationId === stationId);
+      if (exists) {
+        selectStationById(exists.id);
+        return;
+      }
+
+      const st = {
+        id: "private-" + stationId.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + "-" + Math.random().toString(16).slice(2,6),
+        stationId,
+        name: "Private – " + stationId,
+        area: stationId,
+        owner: "Private owner",
+        lat: -6.7924,
+        lng: 39.2083,
+        dataUrl: SCRIPT_URL_CLANERT,
+        aqLabel: null,
+        visibility: "private"
+      };
+      stations.push(st);
+
+      if (map) {
+        const circle = L.circleMarker([st.lat, st.lng], {
+          radius: 10, color: "#6b7280", weight: 2, fillColor: "#9ca3af", fillOpacity: 0.9
+        }).addTo(map);
+        circle.bindPopup(st.name);
+        circle.on("click", () => selectStationById(st.id));
+        markers[st.id] = circle;
+      }
+
+      selectStationById(st.id);
     }
 
     function selectStationById(stationId) {
@@ -1419,16 +1224,22 @@
       if (!station) return;
       currentStation = station;
 
-      renderStationList(stationSearchEl.value);
+      setSelectionUI(true);
       centerMapOnStation(station);
       refreshAllForCurrentStation();
+      renderStationList(stationSearchEl.value);
+      setupAutoRefresh();
+
+      // open popup on select (after refresh binds the popup)
+      setTimeout(() => {
+        const m = markers[station.id];
+        if (m) m.openPopup();
+      }, 450);
     }
 
     // -------------------- MAP INIT --------------------
     function initMap() {
-      const first = stations[0];
-
-      map = L.map("map", { zoomControl: false }).setView([first.lat, first.lng], 13);
+      map = L.map("map", { zoomControl: false }).setView([-6.7924, 39.2083], 12);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -1436,31 +1247,25 @@
       }).addTo(map);
 
       stations.forEach(st => {
+        if (!st.lat || !st.lng) return;
         const circle = L.circleMarker([st.lat, st.lng], {
-          radius: 10,
-          color: "#6b7280",
-          weight: 2,
-          fillColor: "#9ca3af",
-          fillOpacity: 0.9
+          radius: 10, color: "#6b7280", weight: 2, fillColor: "#9ca3af", fillOpacity: 0.9
         }).addTo(map);
 
-        circle.bindPopup(st.name);
         circle.on("click", () => selectStationById(st.id));
-
         markers[st.id] = circle;
       });
-
-      stationAreaTextEl.textContent = first.area;
-      bannerStationNameEl.textContent = first.name;
     }
 
     function centerMapOnStation(station) {
-      if (!map) return;
+      if (!map || !station || station.lat == null || station.lng == null) return;
       map.setView([station.lat, station.lng], 13);
     }
 
-    // -------------------- REFRESH LOGIC --------------------
+    // -------------------- REFRESH --------------------
     async function refreshAllForCurrentStation() {
+      if (!currentStation) return;
+
       const station = currentStation;
       const hours = parseInt(rangeSelect.value, 10) || 1;
 
@@ -1476,12 +1281,19 @@
         updateCardsFromLatest(station, latest);
         updateChartFromHistory(history);
 
-        statusTextEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> Updated</span>`;
+        // open popup with integrated info
+        const m = markers[station.id];
+        if (m) m.openPopup();
+
+        statusTextEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> OK</span>`;
         statusTextEl.className = "status-text ok";
       } catch (err) {
         console.error(err);
         statusTextEl.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-circle"></i> Error</span>`;
         statusTextEl.className = "status-text error";
+
+        onlinePillEl.className = "online-pill offline-pill";
+        onlinePillEl.innerHTML = `<span class="blink-dot off"></span> <i class="bi bi-wifi-off"></i> Offline`;
       }
     }
 
@@ -1489,7 +1301,7 @@
       if (autoRefreshTimer) clearInterval(autoRefreshTimer);
       autoRefreshTimer = null;
 
-      if (autoRefreshEl.checked) {
+      if (autoRefreshEl.checked && currentStation) {
         autoRefreshTimer = setInterval(refreshAllForCurrentStation, 60000);
       }
     }
@@ -1505,33 +1317,20 @@
 
     function togglePanel() {
       const collapsed = sidePanel.classList.toggle("collapsed");
-      panelToggle.textContent = collapsed ? "❮" : "❯";
       setMobileAqScaleVisibility(collapsed);
+      navToggleIcon.className = collapsed ? "bi bi-list" : "bi bi-x-lg";
       if (map) setTimeout(() => map.invalidateSize(), 250);
     }
 
-    panelToggle.addEventListener("click", togglePanel);
     navToggle.addEventListener("click", togglePanel);
 
     // -------------------- PASSWORD GATE --------------------
     function showPassword(action) {
-      pendingAction = action; // "view_history" | "download_csv"
+      pendingAction = action;
       passwordErrorEl.style.display = "none";
       passwordInputEl.value = "";
       passwordModal.show();
       setTimeout(() => passwordInputEl.focus(), 150);
-    }
-
-    async function afterPasswordSuccess() {
-      if (pendingAction === "view_history") {
-        pendingAction = null;
-        await openHistoryModal();
-      } else if (pendingAction === "download_csv") {
-        pendingAction = null;
-        await doCsvDownload();
-      } else {
-        pendingAction = null;
-      }
     }
 
     passwordConfirmBtn.addEventListener("click", async () => {
@@ -1542,11 +1341,15 @@
       }
       passwordErrorEl.style.display = "none";
       passwordModal.hide();
+
       try {
-        await afterPasswordSuccess();
+        if (pendingAction === "view_history") await openHistoryModal();
+        if (pendingAction === "download_csv") await doCsvDownload();
       } catch (e) {
         console.error(e);
         alert("Action failed. Please try again.");
+      } finally {
+        pendingAction = null;
       }
     });
 
@@ -1556,43 +1359,36 @@
 
     // -------------------- HISTORY VIEW --------------------
     async function openHistoryModal() {
-      if (!historyModal) return;
+      if (!historyModal || !currentStation) return;
 
       historyTbodyEl.innerHTML = `<tr><td colspan="3" class="text-muted">Loading…</td></tr>`;
       const hours = parseInt(rangeSelect.value, 10) || 1;
-      historyMetaEl.textContent = `${currentStation.name} · last ${hours} h`;
+      historyMetaEl.textContent = `${currentStation.name} · ${hours}h`;
 
-      try {
-        if (!lastHistory || String(lastHistory.hours) !== String(hours)) {
-          lastHistory = await fetchHistory(currentStation, hours);
-        }
-
-        const pts = (lastHistory.points || [])
-          .filter(p => p && p.timestamp)
-          .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-        const limited = pts.slice(0, 300);
-
-        historyMetaEl.textContent =
-          `${currentStation.name} · last ${hours} h · showing ${limited.length} of ${pts.length} points`;
-
-        if (!limited.length) {
-          historyTbodyEl.innerHTML = `<tr><td colspan="3" class="text-muted">No data for this range.</td></tr>`;
-        } else {
-          historyTbodyEl.innerHTML = limited.map(p => `
-            <tr>
-              <td>${formatTimestampFull(p.timestamp)}</td>
-              <td>${safeNum(p.pm25, 1) || "<span class='text-muted'>--</span>"}</td>
-              <td>${safeNum(p.pm10, 1) || "<span class='text-muted'>--</span>"}</td>
-            </tr>
-          `).join("");
-        }
-
-        historyModal.show();
-      } catch (e) {
-        console.error(e);
-        historyTbodyEl.innerHTML = `<tr><td colspan="3" class="text-danger">Failed to load history.</td></tr>`;
+      if (!lastHistory || String(lastHistory.hours) !== String(hours)) {
+        lastHistory = await fetchHistory(currentStation, hours);
       }
+
+      const pts = (lastHistory.points || [])
+        .filter(p => p && p.timestamp)
+        .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      const limited = pts.slice(0, 300);
+      historyMetaEl.textContent = `${currentStation.name} · ${hours}h · ${limited.length}/${pts.length}`;
+
+      if (!limited.length) {
+        historyTbodyEl.innerHTML = `<tr><td colspan="3" class="text-muted">No data.</td></tr>`;
+      } else {
+        historyTbodyEl.innerHTML = limited.map(p => `
+          <tr>
+            <td>${formatTimestampFull(p.timestamp)}</td>
+            <td>${safeNum(p.pm25, 1) || "<span class='text-muted'>--</span>"}</td>
+            <td>${safeNum(p.pm10, 1) || "<span class='text-muted'>--</span>"}</td>
+          </tr>
+        `).join("");
+      }
+
+      historyModal.show();
     }
 
     // -------------------- CSV DOWNLOAD --------------------
@@ -1627,40 +1423,30 @@
     function formatCsvFilename() {
       const hours = parseInt(rangeSelect.value, 10) || 1;
       const safeStation = (currentStation.stationId || "station").replace(/[^a-z0-9-_]+/gi, "_");
-      const now = new Date();
-      const stamp = now.toISOString().replace(/[:.]/g, "-");
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
       return `${safeStation}_history_${hours}h_${stamp}.csv`;
     }
 
     async function doCsvDownload() {
+      if (!currentStation) return;
       const hours = parseInt(rangeSelect.value, 10) || 1;
       if (!lastHistory || String(lastHistory.hours) !== String(hours)) {
         lastHistory = await fetchHistory(currentStation, hours);
       }
-      const csv = toCsv(lastHistory.points || []);
-      downloadTextFile(formatCsvFilename(), csv);
+      downloadTextFile(formatCsvFilename(), toCsv(lastHistory.points || []));
     }
 
-    // Buttons (NOW PASSWORD REQUIRED FOR VIEW TOO)
-    historyBtn.addEventListener("click", () => showPassword("view_history"));
-    downloadCsvBtn.addEventListener("click", () => showPassword("download_csv"));
-    modalCsvBtn.addEventListener("click", () => showPassword("download_csv"));
+    // Expose popup buttons (Leaflet popup uses inline onclick)
+    window.__openHistoryFromPopup = () => showPassword("view_history");
+    window.__downloadCsvFromPopup = () => showPassword("download_csv");
 
-    // Cache clear
-    clearCacheBtn.addEventListener("click", () => {
-      cacheClearAll();
+    // -------------------- EVENTS --------------------
+    refreshBtn.addEventListener("click", () => refreshAllForCurrentStation());
+
+    rangeSelect.addEventListener("change", () => {
       lastHistory = null;
-      statusTextEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> Cache cleared</span>`;
-      statusTextEl.className = "status-text ok";
-      setTimeout(() => {
-        statusTextEl.innerHTML = `<span class="text-muted"><i class="bi bi-circle"></i> Idle</span>`;
-        statusTextEl.className = "status-text";
-      }, 1500);
+      refreshAllForCurrentStation();
     });
-
-    // -------------------- OTHER EVENTS --------------------
-    refreshBtn.addEventListener("click", refreshAllForCurrentStation);
-    rangeSelect.addEventListener("change", refreshAllForCurrentStation);
 
     autoRefreshEl.addEventListener("change", setupAutoRefresh);
 
@@ -1672,7 +1458,30 @@
       refreshAllForCurrentStation();
     });
 
+    historyBtn.addEventListener("click", () => showPassword("view_history"));
+    downloadCsvBtn.addEventListener("click", () => showPassword("download_csv"));
+    modalCsvBtn.addEventListener("click", () => showPassword("download_csv"));
+
+    clearCacheBtn.addEventListener("click", () => {
+      cacheClearAll();
+      lastHistory = null;
+      statusTextEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> Cache cleared</span>`;
+      statusTextEl.className = "status-text ok";
+      setTimeout(() => {
+        statusTextEl.innerHTML = `<span class="text-muted"><i class="bi bi-circle"></i> Idle</span>`;
+        statusTextEl.className = "status-text";
+      }, 1500);
+    });
+
     stationSearchEl.addEventListener("input", () => renderStationList(stationSearchEl.value));
+
+    addPrivateBtn.addEventListener("click", async () => {
+      const code = (stationSearchEl.value || "").trim();
+      if (!code) return;
+      addPrivateStationFromCode(code);
+      await refreshAllForCurrentStation();
+      setupAutoRefresh();
+    });
 
     window.addEventListener("resize", () => {
       if (map) setTimeout(() => map.invalidateSize(), 200);
@@ -1685,12 +1494,13 @@
       setInterval(updateDayNightIcon, 30000);
 
       initMap();
-      renderStationList("");
-      centerMapOnStation(currentStation);
-      refreshAllForCurrentStation();
-      setupAutoRefresh();
 
-      setMobileAqScaleVisibility(sidePanel.classList.contains("collapsed"));
+      setSelectionUI(false);
+      renderStationList("");
+
+      const collapsed = sidePanel.classList.contains("collapsed");
+      setMobileAqScaleVisibility(collapsed);
+      navToggleIcon.className = collapsed ? "bi bi-list" : "bi bi-x-lg";
     });
   </script>
 </body>
