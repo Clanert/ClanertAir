@@ -162,6 +162,7 @@
     .station-status-pill.unhealthy{background:rgba(249,115,22,.12);color:#9a3412;border-color:rgba(249,115,22,.35)}
     .station-status-pill.veryunhealthy{background:rgba(239,68,68,.12);color:#7f1d1d;border-color:rgba(239,68,68,.35)}
     .station-status-pill.hazardous{background:rgba(88,28,135,.12);color:#4a044e;border-color:rgba(126,34,206,.35)}
+    .station-status-pill.offline{background:rgba(220,38,38,.10);color:#991b1b;border-color:rgba(220,38,38,.25)}
 
     /* Details area */
     .details-wrap{display:none}
@@ -204,6 +205,7 @@
     .aq-unhealthy{background:rgba(249,115,22,.12);color:#9a3412;border-color:rgba(249,115,22,.6)}
     .aq-veryunhealthy{background:rgba(239,68,68,.10);color:#7f1d1d;border-color:rgba(239,68,68,.6)}
     .aq-hazardous{background:rgba(88,28,135,.12);color:#4a044e;border-color:rgba(126,34,206,.7)}
+    .aq-offline{background:rgba(220,38,38,.08);color:#991b1b;border-color:rgba(220,38,38,.25)}
 
     /* Activities */
     .activities{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
@@ -264,7 +266,7 @@
     .history-table thead th{font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);background:#f9fafb;border-bottom:1px solid var(--border-light)}
     .history-table td{font-size:.82rem;color:var(--text-main)}
 
-    /* -------- Map popup mini panel (integrated details on click) -------- */
+    /* -------- Map popup mini panel -------- */
     .station-pop{min-width:240px;max-width:280px}
     .station-pop .pop-title{font-weight:950;font-size:.95rem;line-height:1.15;margin-bottom:6px}
     .station-pop .pop-sub{font-size:.78rem;color:var(--text-muted);margin-bottom:8px}
@@ -281,6 +283,7 @@
     .pop-chip.unhealthy{border-color:rgba(249,115,22,.35);background:rgba(249,115,22,.10);color:#9a3412}
     .pop-chip.veryunhealthy{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#7f1d1d}
     .pop-chip.hazardous{border-color:rgba(126,34,206,.35);background:rgba(126,34,206,.10);color:#4a044e}
+    .pop-chip.offline{border-color:rgba(220,38,38,.25);background:rgba(220,38,38,.08);color:#991b1b}
     .station-pop .pop-actions{display:flex;gap:8px;margin-top:8px}
     .pop-btn{
       border:1px solid var(--border-light);background:#111827;color:#fff;
@@ -292,7 +295,6 @@
 </head>
 
 <body>
-  <!-- Top navigation bar (CLEAN: logo + ClanertAir only) -->
   <div class="top-nav">
     <div class="nav-left">
       <img
@@ -301,22 +303,17 @@
         class="nav-logo"
       />
       <div class="nav-title-block">
-        <div class="nav-title">
-          <span>ClanertAir</span>
-        </div>
+        <div class="nav-title"><span>ClanertAir</span></div>
       </div>
     </div>
 
-    <!-- Hamburger ONLY controls panel -->
     <button id="navToggle" class="nav-toggle" aria-label="Toggle panel" title="Menu">
       <i id="navToggleIcon" class="bi bi-list"></i>
     </button>
   </div>
 
-  <!-- Fullscreen map -->
   <div id="map"></div>
 
-  <!-- AQ scale -->
   <div class="aq-scale" aria-label="Air quality scale">
     <div class="aq-scale-title">
       <div class="d-flex align-items-center gap-2">
@@ -341,7 +338,6 @@
     </div>
   </div>
 
-  <!-- Side panel -->
   <div class="side-panel" id="sidePanel">
     <div class="panel-header">
       <div class="panel-header-title">
@@ -351,7 +347,6 @@
     </div>
 
     <div class="panel-body">
-      <!-- Banner -->
       <div class="banner" aria-label="Station status banner">
         <div class="banner-left">
           <div class="banner-title" id="bannerStationName">No station selected</div>
@@ -366,7 +361,6 @@
         <div class="slogan">Breathe clean air</div>
       </div>
 
-      <!-- Search -->
       <input
         type="text"
         id="stationSearch"
@@ -381,10 +375,8 @@
         </button>
       </div>
 
-      <!-- Station list (EMPTY until user types) -->
       <div id="stationList" class="station-list"></div>
 
-      <!-- EMPTY STATE -->
       <div class="empty-wrap">
         <div class="empty-card">
           <h6><i class="bi bi-search me-1"></i> Search a station</h6>
@@ -398,7 +390,6 @@
         </div>
       </div>
 
-      <!-- DETAILS -->
       <div class="details-wrap">
         <div class="cards-grid">
           <div class="card-custom card-aq">
@@ -588,24 +579,10 @@
     const SCRIPT_URL_CLANERT =
       "https://script.google.com/macros/s/AKfycbwD21CyF2Gli6Y6hDPUyds2fzAw7mrJ0NSDrqeiG7yItbZcYL-cbKsLcbHOU7db32wN/exec";
 
-    // Public stations are searchable. Private stations are NOT shown unless user adds by code.
-    const stations = [
-      {
-        id: "clanert-makabe",
-        stationId: "CLANERT-MAKABE-001",
-        name: "ClanertAir – Mbezi Makabe",
-        area: "Mbezi Makabe, Dar es Salaam",
-        owner: "ClanertAir",
-        lat: -6.7432882,
-        lng: 39.1044879,
-        dataUrl: SCRIPT_URL_CLANERT,
-        aqLabel: null,
-        visibility: "public" // public | private
-      }
-    ];
+    // refresh stations list so newly-added stations appear
+    const STATIONS_REFRESH_MS = 60 * 1000; // 1 minute
 
     // -------------------- PASSWORD --------------------
-    // NOTE: Client-side only (visible in source). For real security, enforce on server too.
     const DOWNLOAD_PASSWORD = "Clanert360@";
 
     // -------------------- CACHE (localStorage) --------------------
@@ -614,9 +591,7 @@
     const CACHE_TTL_HISTORY_MS = 5 * 60 * 1000;
 
     function cacheKey(type, stationId, extra) { return `${CACHE_NS}:${type}:${stationId}:${extra || ""}`; }
-    function cacheSet(key, payload) {
-      try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), payload })); } catch {}
-    }
+    function cacheSet(key, payload) { try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), payload })); } catch {} }
     function cacheGet(key, ttlMs) {
       try {
         const raw = localStorage.getItem(key);
@@ -643,7 +618,6 @@
     const navToggle = document.getElementById("navToggle");
     const navToggleIcon = document.getElementById("navToggleIcon");
 
-    // removed navSub/dayNight/aqMood UI (kept rest unchanged)
     const pm25El = document.getElementById("pm25");
     const pm10El = document.getElementById("pm10");
     const tempEl = document.getElementById("temp");
@@ -679,7 +653,6 @@
     const stationAreaTextEl = document.getElementById("stationAreaText");
     const privacyBadgeEl = document.getElementById("privacyBadge");
 
-    // History/CSV DOM
     const historyBtn = document.getElementById("historyBtn");
     const downloadCsvBtn = document.getElementById("downloadCsvBtn");
     const clearCacheBtn = document.getElementById("clearCacheBtn");
@@ -690,7 +663,6 @@
     const modalCsvBtn = document.getElementById("modalCsvBtn");
     const historyModal = historyModalEl ? new bootstrap.Modal(historyModalEl) : null;
 
-    // Password modal DOM
     const passwordModalEl = document.getElementById("passwordModal");
     const passwordModal = passwordModalEl ? new bootstrap.Modal(passwordModalEl) : null;
     const passwordInputEl = document.getElementById("passwordInput");
@@ -702,11 +674,87 @@
     let markers = {};
     let pmChart = null;
     let autoRefreshTimer = null;
+    let stationsRefreshTimer = null;
 
-    // start with NO selection
+    let stations = []; // dynamic
     let currentStation = null;
     let lastHistory = null;
     let pendingAction = null;
+
+    // -------------------- UTIL: SLUG --------------------
+    function slugify(s){
+      return String(s || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    // -------------------- OFFLINE DISPLAY (NO DATA YET) --------------------
+    function setOfflineUI(station, reasonText){
+      const name = station?.name || "Station";
+      const area = station?.area || station?.stationId || "--";
+
+      bannerStationNameEl.textContent = name;
+      bannerLastSeenEl.textContent = "Last seen: --";
+
+      onlinePillEl.className = "online-pill offline-pill";
+      onlinePillEl.innerHTML = `<span class="blink-dot off"></span> <i class="bi bi-wifi-off"></i> Offline`;
+
+      timestampTextEl.innerHTML = `<i class="bi bi-clock"></i> <span>Last update: --</span>`;
+
+      pm25El.textContent = "--";
+      pm10El.textContent = "--";
+      tempEl.textContent = "--";
+      humEl.textContent  = "--";
+
+      aqStatusEl.textContent = "Offline";
+      aqMessageEl.textContent = reasonText || "No monitor / no data yet.";
+
+      aqCategoryPillEl.innerHTML =
+        `<span class="aq-pill aq-offline">
+          <i class="bi bi-wifi-off"></i> Offline
+        </span>`;
+
+      aqScaleMiniEl.textContent = "PM2.5: -- µg/m³";
+      aqScaleLabelEl.textContent = "Offline";
+      aqScaleHintEl.innerHTML = `<i class="bi bi-info-circle"></i> ${reasonText || "No data yet."}`;
+      setAqiPointerFromPm25(null);
+
+      if (station?.visibility === "private") {
+        privacyBadgeEl.className = "station-status-pill";
+        privacyBadgeEl.innerHTML = `<i class="bi bi-lock-fill"></i> Private`;
+      } else {
+        privacyBadgeEl.className = "station-status-pill";
+        privacyBadgeEl.innerHTML = `<i class="bi bi-unlock"></i> Public`;
+      }
+
+      stationAreaTextEl.textContent = area;
+
+      // show safe “no data” chart text
+      chartSubtitleEl.textContent = "No data yet.";
+      if (pmChart) { pmChart.destroy(); pmChart = null; }
+
+      activitiesEl.innerHTML = `
+        <div class="act">
+          <i class="bi bi-wifi-off text-danger"></i>
+          <div>
+            <p class="act-title">Offline</p>
+            <p class="act-sub">This station exists, but there is no monitor data yet.</p>
+          </div>
+        </div>
+        <div class="act">
+          <i class="bi bi-arrow-repeat text-primary"></i>
+          <div>
+            <p class="act-title">Try again</p>
+            <p class="act-sub">Refresh after the sensor starts sending data.</p>
+          </div>
+        </div>
+      `;
+
+      statusTextEl.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle"></i> Station loaded</span>`;
+      statusTextEl.className = "status-text";
+    }
 
     // -------------------- AQ LOGIC --------------------
     function classifyAirQuality(pm25) {
@@ -720,13 +768,11 @@
       if (pm25 <= 250.4)return { label:"Very Unhealthy", message:"Avoid outdoors.", className:"aq-pill aq-veryunhealthy" };
       return { label:"Hazardous", message:"Stay indoors.", className:"aq-pill aq-hazardous" };
     }
-
     function setAqiPointerFromPm25(pm25) {
       if (pm25 == null || isNaN(pm25)) { aqiPointerEl.style.left = "0%"; return; }
       const clamped = Math.max(0, Math.min(pm25, 250));
       aqiPointerEl.style.left = ((clamped / 250) * 100) + "%";
     }
-
     function getMarkerColors(label) {
       switch (label) {
         case "Good": return { color: "#16a34a", fillColor: "#22c55e" };
@@ -739,7 +785,7 @@
       }
     }
 
-    // -------------------- ACTIVITIES (short) --------------------
+    // -------------------- ACTIVITIES --------------------
     function activitiesFor(label) {
       if (label === "Good") return [
         { icon:"bi-person-running", title:"Run", sub:"Best time." },
@@ -776,7 +822,6 @@
         { icon:"bi-arrow-repeat", title:"Refresh", sub:"Try again." }
       ];
     }
-
     function renderActivities(label) {
       const acts = activitiesFor(label);
       activitiesEl.innerHTML = acts.map(a => `
@@ -790,6 +835,144 @@
       `).join("");
     }
 
+    // -------------------- STATIONS API --------------------
+    function buildStationObjectFromApi(x){
+      const stationId = String(x.station || "").trim();
+      const name = String(x.name || stationId || "Station");
+      const lat = (x.lat == null || x.lat === "") ? null : Number(x.lat);
+      const lng = (x.lng == null || x.lng === "") ? null : Number(x.lng);
+      const visibility = (String(x.visibility || "public").toLowerCase() === "private") ? "private" : "public";
+
+      // NEW: carry status fields from ?includeStatus=1
+      const lastSeen = x.lastSeen || null;
+      const isOnline = !!x.online;
+
+      return {
+        id: slugify(stationId) || ("st-" + Math.random().toString(16).slice(2)),
+        stationId,
+        name,
+        area: name,
+        owner: "ClanertAir",
+        lat: (isFinite(lat) ? lat : null),
+        lng: (isFinite(lng) ? lng : null),
+        dataUrl: SCRIPT_URL_CLANERT,
+        aqLabel: null,          // will be filled after latest fetch
+        visibility,
+        lastSeen,
+        isOnline
+      };
+    }
+
+    async function fetchStationsPublic(){
+      // includeStatus=1 so we know online/offline even if no data pulled yet
+      const url = SCRIPT_URL_CLANERT + "?mode=stations&includeStatus=1";
+      const r = await fetch(url, { cache: "no-store" });
+      const t = await r.text();
+      let d;
+      try { d = JSON.parse(t); } catch { throw new Error("Stations response not JSON."); }
+      return (d.stations || []).map(buildStationObjectFromApi).filter(s => !!s.stationId);
+    }
+    async function fetchStationsByCode(code){
+      // includeStatus=1 for private too
+      const url = SCRIPT_URL_CLANERT + "?mode=stations&includeStatus=1&code=" + encodeURIComponent(code || "");
+      const r = await fetch(url, { cache: "no-store" });
+      const t = await r.text();
+      let d;
+      try { d = JSON.parse(t); } catch { throw new Error("Stations(code) response not JSON."); }
+      return (d.stations || []).map(buildStationObjectFromApi).filter(s => !!s.stationId);
+    }
+
+    function upsertStations(newOnes){
+      const byStationId = new Map(stations.map(s => [s.stationId, s]));
+      let changed = false;
+
+      for(const s of (newOnes || [])){
+        const prev = byStationId.get(s.stationId);
+        if(!prev){
+          byStationId.set(s.stationId, s);
+          changed = true;
+        }else{
+          const merged = { ...prev, ...s, aqLabel: prev.aqLabel ?? null };
+          byStationId.set(s.stationId, merged);
+
+          if(prev.name !== merged.name || prev.lat !== merged.lat || prev.lng !== merged.lng || prev.visibility !== merged.visibility || prev.isOnline !== merged.isOnline || prev.lastSeen !== merged.lastSeen){
+            changed = true;
+          }
+        }
+      }
+
+      stations = Array.from(byStationId.values());
+
+      // unique IDs
+      const ids = new Set();
+      for(const s of stations){
+        if(ids.has(s.id)){
+          s.id = s.id + "-" + Math.random().toString(16).slice(2,6);
+        }
+        ids.add(s.id);
+      }
+
+      return changed;
+    }
+
+    function rebuildMarkers(){
+      if(!map) return;
+
+      // remove old markers
+      for(const key in markers){
+        if(!stations.find(s => s.id === key)){
+          try { map.removeLayer(markers[key]); } catch {}
+          delete markers[key];
+        }
+      }
+
+      // add/update markers
+      stations.forEach(st => {
+        if(st.lat == null || st.lng == null) return;
+
+        if(!markers[st.id]){
+          const circle = L.circleMarker([st.lat, st.lng], {
+            radius: 10, color: "#6b7280", weight: 2, fillColor: "#9ca3af", fillOpacity: 0.9
+          }).addTo(map);
+
+          circle.on("click", () => selectStationByStationId(st.stationId));
+          markers[st.id] = circle;
+        }else{
+          try { markers[st.id].setLatLng([st.lat, st.lng]); } catch {}
+        }
+
+        // If backend says online but we don't have AQ yet, mark popup online quickly
+        if (st.isOnline && !st.aqLabel) {
+          updateMarkerPopup(st, null, "Online", "Active recently");
+        }
+      });
+    }
+
+    async function refreshStationsPublicOnce(){
+      try{
+        const list = await fetchStationsPublic();
+        const changed = upsertStations(list);
+        if(changed){
+          rebuildMarkers();
+          renderStationList(stationSearchEl.value);
+
+          // Kick lightweight latest fetch for online stations so they upgrade to AQ categories
+          for (const st of stations) {
+            if (st.isOnline && !st.aqLabel) {
+              updateAqLabelForListItem(st).then(() => renderStationList(stationSearchEl.value)).catch(()=>{});
+            }
+          }
+        }
+      }catch(e){
+        console.warn("Stations refresh failed:", e);
+      }
+    }
+
+    function startStationsAutoRefresh(){
+      if(stationsRefreshTimer) clearInterval(stationsRefreshTimer);
+      stationsRefreshTimer = setInterval(refreshStationsPublicOnce, STATIONS_REFRESH_MS);
+    }
+
     // -------------------- API CALLS (WITH CACHE) --------------------
     async function fetchLatest(station) {
       const key = cacheKey("latest", station.stationId, "");
@@ -801,8 +984,8 @@
       const text = await res.text();
       let data;
       try { data = JSON.parse(text); } catch { throw new Error("Server did not return JSON."); }
-      if (data.error === "no_data") throw new Error("No data available yet.");
 
+      // IMPORTANT: do NOT throw for no_data. We treat it as OFFLINE.
       cacheSet(key, data);
       return data;
     }
@@ -859,7 +1042,7 @@
       }
     }
 
-    // -------- Map popup mini panel --------
+    // -------- POPUP --------
     function pillClassForAQ(label) {
       const s = (label || "").toLowerCase();
       if (s.includes("good")) return "good";
@@ -868,10 +1051,12 @@
       if (s.includes("very")) return "veryunhealthy";
       if (s.includes("hazard")) return "hazardous";
       if (s.includes("unhealthy")) return "unhealthy";
+      if (s.includes("offline")) return "offline";
       return "";
     }
 
-    function buildPopupHTML(station, latest, aqInfo) {
+    function buildPopupHTML(station, latestOrNull, aqInfo, offlineReason) {
+      const latest = latestOrNull || {};
       const pm25 = parseFloat(latest.pm25);
       const pm10 = parseFloat(latest.pm10);
       const temp = parseFloat(latest.temperature);
@@ -883,12 +1068,17 @@
 
       const owner = station.owner ? `<span class="pop-chip"><i class="bi bi-person-badge"></i> <span class="muted">${station.owner}</span></span>` : "";
 
-      const aqPill = `<span class="pop-chip ${pillClassForAQ(aqInfo.label)}"><i class="bi bi-activity"></i> ${aqInfo.label}</span>`;
+      const label = aqInfo?.label || "Offline";
+      const aqPill = `<span class="pop-chip ${pillClassForAQ(label)}"><i class="bi bi-activity"></i> ${label}</span>`;
 
       const p25 = isNaN(pm25) ? "--" : pm25.toFixed(1);
       const p10 = isNaN(pm10) ? "--" : pm10.toFixed(1);
       const t = isNaN(temp) ? "--" : temp.toFixed(1);
       const h = isNaN(hum) ? "--" : hum.toFixed(0);
+
+      const timeLine = latest.timestamp
+        ? `<div class="pop-sub"><i class="bi bi-clock"></i> ${formatTimestampFull(latest.timestamp)}</div>`
+        : `<div class="pop-sub"><i class="bi bi-clock"></i> ${offlineReason || "No data yet."}</div>`;
 
       return `
         <div class="station-pop">
@@ -911,7 +1101,7 @@
             <span class="pop-chip"><i class="bi bi-droplet"></i> ${h} %</span>
           </div>
 
-          <div class="pop-sub"><i class="bi bi-clock"></i> ${formatTimestampFull(latest.timestamp)}</div>
+          ${timeLine}
 
           <div class="pop-actions">
             <button class="pop-btn" onclick="window.__openHistoryFromPopup()">
@@ -925,69 +1115,26 @@
       `;
     }
 
-    function updateMarkerForStation(station, latest, aqInfo) {
-      const marker = markers[station.id];
-      if (!marker) return;
+    function updateMarkerPopup(station, latestOrNull, label, offlineReason){
+      const m = markers[station.id];
+      if(!m) return;
 
-      const colors = getMarkerColors(aqInfo.label);
-      marker.setStyle({ color: colors.color, fillColor: colors.fillColor });
-      marker.bindPopup(buildPopupHTML(station, latest, aqInfo), { closeButton: true, autoPan: true });
-    }
-
-    function updateCardsFromLatest(station, latest) {
-      const pm25 = parseFloat(latest.pm25);
-      const pm10 = parseFloat(latest.pm10);
-      const temp = parseFloat(latest.temperature);
-      const hum  = parseFloat(latest.humidity);
-
-      pm25El.textContent = isNaN(pm25) ? "--" : pm25.toFixed(1);
-      pm10El.textContent = isNaN(pm10) ? "--" : pm10.toFixed(1);
-      tempEl.textContent = isNaN(temp) ? "--" : temp.toFixed(1);
-      humEl.textContent  = isNaN(hum)  ? "--" : hum.toFixed(0);
-
-      const aqInfo = classifyAirQuality(pm25);
-      station.aqLabel = aqInfo.label;
-
-      aqScaleMiniEl.textContent = "PM2.5: " + (isNaN(pm25) ? "--" : pm25.toFixed(1)) + " µg/m³";
-      aqScaleLabelEl.textContent = aqInfo.label;
-      aqScaleHintEl.innerHTML = `<i class="bi bi-info-circle"></i> ${aqInfo.message}`;
-      setAqiPointerFromPm25(pm25);
-
-      bannerStationNameEl.textContent = station.name;
-      const lastSeen = formatTimestampFull(latest.timestamp);
-      bannerLastSeenEl.textContent = "Last seen: " + lastSeen;
-
-      const online = isStationOnline(latest.timestamp);
-      onlinePillEl.className = "online-pill" + (online ? "" : " offline-pill");
-      onlinePillEl.innerHTML = online
-        ? `<span class="blink-dot"></span> <i class="bi bi-wifi"></i> Online`
-        : `<span class="blink-dot off"></span> <i class="bi bi-wifi-off"></i> Offline`;
-
-      if (station.visibility === "private") {
-        privacyBadgeEl.className = "station-status-pill";
-        privacyBadgeEl.innerHTML = `<i class="bi bi-lock-fill"></i> Private`;
-      } else {
-        privacyBadgeEl.className = "station-status-pill";
-        privacyBadgeEl.innerHTML = `<i class="bi bi-unlock"></i> Public`;
+      let aqInfo;
+      if(label === "Offline"){
+        aqInfo = { label:"Offline", message: offlineReason || "No data yet." };
+        m.setStyle({ color:"#dc2626", fillColor: "#fca5a5" });
+      }else if(label === "Online"){
+        aqInfo = { label:"Online", message: "Active recently" };
+        m.setStyle({ color:"#16a34a", fillColor: "#86efac" });
+      }else{
+        const colors = getMarkerColors(label);
+        m.setStyle({ color: colors.color, fillColor: colors.fillColor });
+        aqInfo = { label, message:"" };
       }
-
-      aqStatusEl.textContent = aqInfo.label;
-      aqMessageEl.textContent = aqInfo.message;
-      aqCategoryPillEl.innerHTML =
-        `<span class="${aqInfo.className}">
-          <i class="bi bi-circle-fill"></i> ${aqInfo.label}
-        </span>`;
-
-      renderActivities(aqInfo.label);
-
-      timestampTextEl.innerHTML =
-        `<i class="bi bi-clock"></i> <span>Last update: ${lastSeen}</span>`;
-
-      stationAreaTextEl.textContent = station.area || "--";
-
-      updateMarkerForStation(station, latest, aqInfo);
+      m.bindPopup(buildPopupHTML(station, latestOrNull, aqInfo, offlineReason), { closeButton:true, autoPan:true });
     }
 
+    // -------------------- CHART --------------------
     function computeNiceMax(values) {
       const nums = values.filter(v => typeof v === "number" && !isNaN(v));
       if (!nums.length) return 50;
@@ -1013,7 +1160,7 @@
 
       points.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-      chartSubtitleEl.textContent = points.length ? `${points.length} pts · ${hours}h` : "No data.";
+      chartSubtitleEl.textContent = points.length ? `${points.length} pts · ${hours}h` : "No data yet.";
 
       const labels = points.map(p => formatTimestampShort(p.timestamp));
       const pm25Data = points.map(p => {
@@ -1088,8 +1235,88 @@
       });
     }
 
-    // -------------------- STATIONS: SEARCH + PRIVATE CODE ADD --------------------
+    // -------------------- CARD UPDATE --------------------
+    function updateCardsFromLatest(station, latest) {
+      const pm25 = parseFloat(latest.pm25);
+      const pm10 = parseFloat(latest.pm10);
+      const temp = parseFloat(latest.temperature);
+      const hum  = parseFloat(latest.humidity);
+
+      pm25El.textContent = isNaN(pm25) ? "--" : pm25.toFixed(1);
+      pm10El.textContent = isNaN(pm10) ? "--" : pm10.toFixed(1);
+      tempEl.textContent = isNaN(temp) ? "--" : temp.toFixed(1);
+      humEl.textContent  = isNaN(hum)  ? "--" : hum.toFixed(0);
+
+      const aqInfo = classifyAirQuality(pm25);
+      station.aqLabel = aqInfo.label;
+
+      aqScaleMiniEl.textContent = "PM2.5: " + (isNaN(pm25) ? "--" : pm25.toFixed(1)) + " µg/m³";
+      aqScaleLabelEl.textContent = aqInfo.label;
+      aqScaleHintEl.innerHTML = `<i class="bi bi-info-circle"></i> ${aqInfo.message}`;
+      setAqiPointerFromPm25(pm25);
+
+      bannerStationNameEl.textContent = station.name;
+      const lastSeen = formatTimestampFull(latest.timestamp);
+      bannerLastSeenEl.textContent = "Last seen: " + lastSeen;
+
+      const online = isStationOnline(latest.timestamp);
+      onlinePillEl.className = "online-pill" + (online ? "" : " offline-pill");
+      onlinePillEl.innerHTML = online
+        ? `<span class="blink-dot"></span> <i class="bi bi-wifi"></i> Online`
+        : `<span class="blink-dot off"></span> <i class="bi bi-wifi-off"></i> Offline`;
+
+      if (station.visibility === "private") {
+        privacyBadgeEl.className = "station-status-pill";
+        privacyBadgeEl.innerHTML = `<i class="bi bi-lock-fill"></i> Private`;
+      } else {
+        privacyBadgeEl.className = "station-status-pill";
+        privacyBadgeEl.innerHTML = `<i class="bi bi-unlock"></i> Public`;
+      }
+
+      aqStatusEl.textContent = aqInfo.label;
+      aqMessageEl.textContent = aqInfo.message;
+      aqCategoryPillEl.innerHTML =
+        `<span class="${aqInfo.className}">
+          <i class="bi bi-circle-fill"></i> ${aqInfo.label}
+        </span>`;
+
+      renderActivities(aqInfo.label);
+
+      timestampTextEl.innerHTML =
+        `<i class="bi bi-clock"></i> <span>Last update: ${lastSeen}</span>`;
+
+      stationAreaTextEl.textContent = station.area || "--";
+
+      // marker popup
+      updateMarkerPopup(station, latest, aqInfo.label, "");
+    }
+
+    // -------------------- STATION LIST --------------------
     function normalize(s) { return (s || "").trim().toLowerCase(); }
+
+    async function updateAqLabelForListItem(st){
+      // Try to fetch latest, but if no_data => mark offline
+      try{
+        const latest = await fetchLatest(st);
+        if(latest && latest.error === "no_data"){
+          st.aqLabel = "Offline";
+          updateMarkerPopup(st, null, "Offline", "No data yet.");
+          return;
+        }
+        if(latest && latest.timestamp){
+          const pm25 = parseFloat(latest.pm25);
+          const aq = classifyAirQuality(pm25);
+          st.aqLabel = aq.label;
+          updateMarkerPopup(st, latest, aq.label, "");
+        }else{
+          st.aqLabel = "Offline";
+          updateMarkerPopup(st, null, "Offline", "No data yet.");
+        }
+      }catch{
+        st.aqLabel = "Offline";
+        updateMarkerPopup(st, null, "Offline", "No data yet.");
+      }
+    }
 
     function renderStationList(filterText) {
       const q = normalize(filterText);
@@ -1106,11 +1333,11 @@
       });
 
       stationCountTextEl.textContent = visible.length ? `${visible.length} found` : "No match";
-
       stationListEl.innerHTML = "";
+
       visible.forEach(st => {
         const div = document.createElement("div");
-        div.className = "station-item" + (currentStation && st.id === currentStation.id ? " active" : "");
+        div.className = "station-item" + (currentStation && st.stationId === currentStation.stationId ? " active" : "");
 
         const left = document.createElement("div");
         left.innerHTML = `
@@ -1124,23 +1351,41 @@
         const status = document.createElement("div");
         status.className = "station-status-pill";
 
-        if (st.aqLabel) {
-          const labelLower = st.aqLabel.toLowerCase();
-          if (labelLower.includes("good")) status.classList.add("good");
-          else if (labelLower.includes("moderate")) status.classList.add("moderate");
-          else if (labelLower.includes("sensitive")) status.classList.add("unhealthy");
-          else if (labelLower.includes("very")) status.classList.add("veryunhealthy");
-          else if (labelLower.includes("hazardous")) status.classList.add("hazardous");
-          else if (labelLower.includes("unhealthy")) status.classList.add("unhealthy");
-          status.innerHTML = `${st.visibility === "private" ? `<i class="bi bi-lock-fill"></i>` : `<i class="bi bi-unlock"></i>`} ${st.aqLabel}`;
-        } else {
-          status.innerHTML = `${st.visibility === "private" ? `<i class="bi bi-lock-fill"></i>` : `<i class="bi bi-unlock"></i>`} --`;
-        }
+        // Default label: AQ if known, otherwise Online/Offline from station status
+        const fallbackLabel = st.isOnline ? "Online" : "Offline";
+        const label = st.aqLabel || fallbackLabel;
+        const labelLower = label.toLowerCase();
+
+        if (labelLower.includes("offline")) status.classList.add("offline");
+        else if (labelLower.includes("good")) status.classList.add("good");
+        else if (labelLower.includes("moderate")) status.classList.add("moderate");
+        else if (labelLower.includes("sensitive")) status.classList.add("unhealthy");
+        else if (labelLower.includes("very")) status.classList.add("veryunhealthy");
+        else if (labelLower.includes("hazardous")) status.classList.add("hazardous");
+        // keep default style for generic "Online" until AQ is known
+
+        status.innerHTML =
+          `${st.visibility === "private" ? `<i class="bi bi-lock-fill"></i>` : `<i class="bi bi-unlock"></i>`} ${label}`;
 
         div.appendChild(left);
         div.appendChild(status);
-        div.addEventListener("click", () => selectStationById(st.id));
+
+        div.addEventListener("click", async () => {
+          selectStationByStationId(st.stationId);
+          // Also try to refresh label so list becomes Good/Moderate later if data exists
+          await updateAqLabelForListItem(st);
+          renderStationList(stationSearchEl.value);
+        });
+
         stationListEl.appendChild(div);
+
+        // Fire a lightweight AQ check for online items lacking AQ label
+        if (st.isOnline && !st.aqLabel) {
+          updateAqLabelForListItem(st).then(() => {
+            // re-render single item quickly if search unchanged
+            if (normalize(stationSearchEl.value) === q) renderStationList(stationSearchEl.value);
+          }).catch(()=>{});
+        }
       });
 
       if (visible.length === 0) {
@@ -1152,54 +1397,69 @@
       }
     }
 
-    function addPrivateStationFromCode(code) {
-      const stationId = (code || "").trim();
-      if (!stationId) return;
+    async function addPrivateStationsFromCode(code) {
+      const c = (code || "").trim();
+      if (!c) return;
 
-      const exists = stations.find(s => s.stationId === stationId);
-      if (exists) { selectStationById(exists.id); return; }
+      try{
+        statusTextEl.innerHTML = `<span class="text-muted"><i class="bi bi-lock-fill"></i> Checking code…</span>`;
+        statusTextEl.className = "status-text";
 
-      const st = {
-        id: "private-" + stationId.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + "-" + Math.random().toString(16).slice(2,6),
-        stationId,
-        name: "Private – " + stationId,
-        area: stationId,
-        owner: "Private owner",
-        lat: -6.7924,
-        lng: 39.2083,
-        dataUrl: SCRIPT_URL_CLANERT,
-        aqLabel: null,
-        visibility: "private"
-      };
-      stations.push(st);
+        const list = await fetchStationsByCode(c);
+        if(!list.length){
+          statusTextEl.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-circle"></i> No stations for this code</span>`;
+          statusTextEl.className = "status-text error";
+          return;
+        }
 
-      if (map) {
-        const circle = L.circleMarker([st.lat, st.lng], {
-          radius: 10, color: "#6b7280", weight: 2, fillColor: "#9ca3af", fillOpacity: 0.9
-        }).addTo(map);
-        circle.bindPopup(st.name);
-        circle.on("click", () => selectStationById(st.id));
-        markers[st.id] = circle;
+        upsertStations(list);
+        rebuildMarkers();
+
+        statusTextEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> Added ${list.length} station(s)</span>`;
+        statusTextEl.className = "status-text ok";
+
+        // Mark as Offline or Online immediately based on status
+        for(const s of list){
+          if (s.isOnline) {
+            updateMarkerPopup(s, null, "Online", "Active recently");
+          } else {
+            s.aqLabel = "Offline";
+            updateMarkerPopup(s, null, "Offline", "No data yet.");
+          }
+        }
+
+        selectStationByStationId(list[0].stationId);
+        renderStationList(stationSearchEl.value);
+
+      }catch(e){
+        console.error(e);
+        statusTextEl.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-circle"></i> Code failed</span>`;
+        statusTextEl.className = "status-text error";
       }
-
-      selectStationById(st.id);
     }
 
-    function selectStationById(stationId) {
-      const station = stations.find(s => s.id === stationId);
+    function selectStationByStationId(stationId) {
+      const station = stations.find(s => s.stationId === stationId);
       if (!station) return;
-      currentStation = station;
 
-      setSelectionUI(true);
+      currentStation = station;
+      document.body.classList.add("has-selection");
+
       centerMapOnStation(station);
+
+      // SHOW OFFLINE UI IMMEDIATELY (so station with no monitor still works)
+      setOfflineUI(station, station.isOnline ? "Active recently, loading data…" : "Station added. Waiting for monitor data.");
+
+      // then try to load data (if exists, it will replace offline UI)
       refreshAllForCurrentStation();
+
       renderStationList(stationSearchEl.value);
       setupAutoRefresh();
 
-      setTimeout(() => {
-        const m = markers[station.id];
-        if (m) m.openPopup();
-      }, 450);
+      const marker = markers[station.id];
+      if(marker){
+        setTimeout(() => { try{ marker.openPopup(); }catch{} }, 450);
+      }
     }
 
     // -------------------- MAP INIT --------------------
@@ -1210,16 +1470,6 @@
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap contributors"
       }).addTo(map);
-
-      stations.forEach(st => {
-        if (!st.lat || !st.lng) return;
-        const circle = L.circleMarker([st.lat, st.lng], {
-          radius: 10, color: "#6b7280", weight: 2, fillColor: "#9ca3af", fillOpacity: 0.9
-        }).addTo(map);
-
-        circle.on("click", () => selectStationById(st.id));
-        markers[st.id] = circle;
-      });
     }
 
     function centerMapOnStation(station) {
@@ -1227,7 +1477,7 @@
       map.setView([station.lat, station.lng], 13);
     }
 
-    // -------------------- REFRESH --------------------
+    // -------------------- REFRESH DATA --------------------
     async function refreshAllForCurrentStation() {
       if (!currentStation) return;
 
@@ -1238,26 +1488,37 @@
       statusTextEl.className = "status-text";
 
       try {
-        const [latest, history] = await Promise.all([
-          fetchLatest(station),
-          fetchHistory(station, hours)
-        ]);
+        const latest = await fetchLatest(station);
 
+        // If station exists but no data yet
+        if (latest && latest.error === "no_data") {
+          station.aqLabel = "Offline";
+          setOfflineUI(station, "No monitor / no data yet.");
+          updateMarkerPopup(station, null, "Offline", "No data yet.");
+          statusTextEl.innerHTML = `<span class="text-muted"><i class="bi bi-info-circle"></i> No data yet</span>`;
+          statusTextEl.className = "status-text";
+          return;
+        }
+
+        // If we have latest data, update UI
         updateCardsFromLatest(station, latest);
-        updateChartFromHistory(history);
 
-        const m = markers[station.id];
-        if (m) m.openPopup();
+        // History can also be empty; do not throw
+        const history = await fetchHistory(station, hours);
+        updateChartFromHistory(history);
 
         statusTextEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> OK</span>`;
         statusTextEl.className = "status-text ok";
       } catch (err) {
         console.error(err);
+
+        // keep station shown as offline instead of “nothing”
+        station.aqLabel = "Offline";
+        setOfflineUI(station, "Station exists, but data cannot be loaded now.");
+        updateMarkerPopup(station, null, "Offline", "Cannot load data.");
+
         statusTextEl.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-circle"></i> Error</span>`;
         statusTextEl.className = "status-text error";
-
-        onlinePillEl.className = "online-pill offline-pill";
-        onlinePillEl.innerHTML = `<span class="blink-dot off"></span> <i class="bi bi-wifi-off"></i> Offline`;
       }
     }
 
@@ -1270,7 +1531,7 @@
       }
     }
 
-    // -------------------- PANEL TOGGLE + AQ SCALE HIDE ON MOBILE --------------------
+    // -------------------- PANEL TOGGLE --------------------
     function setMobileAqScaleVisibility(panelCollapsed) {
       if (window.matchMedia("(max-width: 640px)").matches) {
         document.body.classList.toggle("panel-open", !panelCollapsed);
@@ -1285,7 +1546,6 @@
       navToggleIcon.className = collapsed ? "bi bi-list" : "bi bi-x-lg";
       if (map) setTimeout(() => map.invalidateSize(), 250);
     }
-
     navToggle.addEventListener("click", togglePanel);
 
     // -------------------- PASSWORD GATE --------------------
@@ -1329,10 +1589,7 @@
       const hours = parseInt(rangeSelect.value, 10) || 1;
       historyMetaEl.textContent = `${currentStation.name} · ${hours}h`;
 
-      if (!lastHistory || String(lastHistory.hours) !== String(hours)) {
-        lastHistory = await fetchHistory(currentStation, hours);
-      }
-
+      lastHistory = await fetchHistory(currentStation, hours);
       const pts = (lastHistory.points || [])
         .filter(p => p && p.timestamp)
         .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -1341,7 +1598,7 @@
       historyMetaEl.textContent = `${currentStation.name} · ${hours}h · ${limited.length}/${pts.length}`;
 
       if (!limited.length) {
-        historyTbodyEl.innerHTML = `<tr><td colspan="3" class="text-muted">No data.</td></tr>`;
+        historyTbodyEl.innerHTML = `<tr><td colspan="3" class="text-muted">No data yet.</td></tr>`;
       } else {
         historyTbodyEl.innerHTML = limited.map(p => `
           <tr>
@@ -1394,9 +1651,7 @@
     async function doCsvDownload() {
       if (!currentStation) return;
       const hours = parseInt(rangeSelect.value, 10) || 1;
-      if (!lastHistory || String(lastHistory.hours) !== String(hours)) {
-        lastHistory = await fetchHistory(currentStation, hours);
-      }
+      lastHistory = await fetchHistory(currentStation, hours);
       downloadTextFile(formatCsvFilename(), toCsv(lastHistory.points || []));
     }
 
@@ -1441,9 +1696,7 @@
     addPrivateBtn.addEventListener("click", async () => {
       const code = (stationSearchEl.value || "").trim();
       if (!code) return;
-      addPrivateStationFromCode(code);
-      await refreshAllForCurrentStation();
-      setupAutoRefresh();
+      await addPrivateStationsFromCode(code);
     });
 
     window.addEventListener("resize", () => {
@@ -1452,10 +1705,26 @@
     });
 
     // -------------------- BOOT --------------------
-    window.addEventListener("load", () => {
+    window.addEventListener("load", async () => {
       initMap();
-
       setSelectionUI(false);
+
+      // Load public stations first (with status)
+      await refreshStationsPublicOnce();
+
+      // Mark visual popups with quick status (Online/Offline) until AQ fetched
+      for(const s of stations){
+        if (s.isOnline) {
+          updateMarkerPopup(s, null, "Online", "Active recently");
+        } else {
+          s.aqLabel = "Offline";
+          updateMarkerPopup(s, null, "Offline", "No data yet.");
+        }
+      }
+
+      rebuildMarkers();
+      startStationsAutoRefresh();
+
       renderStationList("");
 
       const collapsed = sidePanel.classList.contains("collapsed");
